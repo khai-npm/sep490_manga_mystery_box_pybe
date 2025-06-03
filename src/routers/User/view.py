@@ -18,7 +18,7 @@ User_router.post("/register")
 
 
 
-@User_router.post("/auth/register", response_model=BodyResponseSchema)
+@User_router.post("/auth/register",  )
 async def register_account(new_account : RegisterFormSchema):
     return {"data" :[await action_user_register(new_account)]}
 
@@ -34,11 +34,11 @@ async def test_jwt():
         return {"success" : False, 
                 "error" : str(e)}
     
-@User_router.post("/email/verify")
+@User_router.post("/email/verify", response_model=BodyResponseSchema)
 async def send_verify_email(current_user : str = Depends(get_current_user)):
     return {"data" : [await action_send_verfify_email(current_user)]}
 
-@User_router.post("/confirm")
+@User_router.post("/confirm", response_model=BodyResponseSchema)
 async def confirm_verify_email(code : str, current_user : str = Depends(get_current_user)):
     return {"data" : [await action_confirm_verify_email(code, current_user)]}
 
