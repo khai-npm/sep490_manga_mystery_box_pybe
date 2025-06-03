@@ -9,6 +9,7 @@ class User(Document):
     email : str
     profile_image : str
     is_active : bool
+    is_email_verification : bool
     phone_number : str
     create_date : datetime
     wallet_id : str

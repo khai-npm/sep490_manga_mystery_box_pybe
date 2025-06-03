@@ -19,6 +19,7 @@ async def event_01_init_db():
     from src.models.Permission import Permission
     from src.models.PermissionRole import PermissionRole
     from src.models.Role import Role
+    from src.models.PendingEmailVerification import PendingEmailVerification
     from motor.motor_asyncio import AsyncIOMotorClient
     from src.database.get_db_instance import connection_string
 
@@ -31,7 +32,8 @@ async def event_01_init_db():
                                                              DigitalWallet, 
                                                              Permission, 
                                                              PermissionRole, 
-                                                             Role]
+                                                             Role,
+                                                             PendingEmailVerification]
     )
     # if await account.count() == 0:
     #     new_account = account(username="admin",
@@ -88,6 +90,7 @@ async def event_01_init_db():
                         is_active = False,
                         phone_number="sample",
                         wallet_id="sample",
+                        is_email_verification = False,
                         wrong_password_count=0,
                         login_lock_time=datetime.now(),
                         role_id="sample",

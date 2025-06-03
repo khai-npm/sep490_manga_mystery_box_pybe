@@ -1,13 +1,32 @@
 from fastapi import HTTPException
+import random
+import smtplib
+from email.message import EmailMessage
 from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas.RegisterFormSchema import RegisterFormSchema
 from src.models.User import User
+from src.models.PendingEmailVerification import PendingEmailVerification
 from src.schemas.BodyResponseSchema import BodyResponseSchema
 from src.libs.regular_expression import contains_special_character
 from src.libs.hash_password import hash_password_util
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.libs.jwt_authenication_bearer import (authenticate_user, 
                                                create_access_token)
+from src.libs.jwt_authenication_bearer import verify_password
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
+# Email configuration
+# sender_email = "your_email@gmail.com"
+# receiver_email = "recipient@example.com"
+# subject = "Test Email from Python"
+# body = "Hello, this is a test email sent from Python."
+
+
+async def generate_random_string_token():
+    return ''.join(str(random.randint(0, 9)) for _ in range(6))
 
 async def action_user_register(request_data : RegisterFormSchema):
     try:
@@ -36,6 +55,7 @@ async def action_user_register(request_data : RegisterFormSchema):
             profile_image = "",
             is_active = True,
             phone_number="",
+            is_email_verification = False,
             wallet_id="",
             wrong_password_count=0,
             login_lock_time=datetime.now(),
@@ -71,3 +91,59 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
     
     except Exception as e:
         return BodyResponseSchema(success=False, error=str(e))
+
+async def action_send_verfify_email(data: str):
+    try:
+        code = await generate_random_string_token()
+        print(code)
+        current_user = await User.find_one(User.username == data)
+        print(current_user)
+        
+        new_verify_session = PendingEmailVerification(
+        email=current_user.email,
+        code=hash_password_util.HashPassword(code),
+        expire_time=datetime.now() + timedelta(minutes=30)
+        )
+
+        await new_verify_session.insert()
+
+        subject = "Manga Mystery Box email verify notification"
+        body = "your code is: " + code
+        sender_email = os.getenv("SENDER_EMAIL")
+
+        msg = EmailMessage()
+        msg["From"] = sender_email
+        msg["To"] = current_user.email
+        msg["Subject"] = subject
+        msg.set_content(body)
+
+#========================[AI generated code]====================
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender_email, os.getenv("SENDER_PASSWORD"))
+            smtp.send_message(msg)
+
+#================================================================
+
+        return current_user.email + "verification code sent !"
+
+    except Exception as e:
+        raise HTTPException(detail= str(e), status_code=400)
+
+async def action_confirm_verify_email(code : str, current_user : str):
+    try:
+        user = await User.find_one(User.username == current_user)
+        current_verify_session = await PendingEmailVerification.find_one(PendingEmailVerification.email == user.email)
+        if current_verify_session.expire_time < datetime.now():
+            raise Exception("invalid time")
+
+        if verify_password(plain_pwd=code, hashed_pwd=current_verify_session.code) is False:
+            raise Exception("invalid code")
+        
+        # user.is_email_verification = True
+        await user.set({User.is_email_verification: True})
+        await current_verify_session.delete()
+
+        return "success!"
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)

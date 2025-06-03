@@ -4,8 +4,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas.BodyResponseSchema import BodyResponseSchema
 from src.schemas.RegisterFormSchema import RegisterFormSchema
 from src.routers.User.utils import (action_user_register, 
-                                    action_login)
-from src.libs.jwt_authenication_handler import jwt_validator
+                                    action_login,
+                                    action_send_verfify_email,
+                                    action_confirm_verify_email)
+from src.libs.jwt_authenication_handler import get_current_user, jwt_validator
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
 # from src.lib.jwt_authenication_handler import get_current_user, jwt_validator
@@ -24,13 +26,22 @@ async def register_account(new_account : RegisterFormSchema):
 async def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     return await action_login(form_data)
 
-@User_router.get("/jwt_test", dependencies=[Depends(jwt_validator)])
+@User_router.get("/jwt_test", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def test_jwt():
     try:
         return {"success" : True}
     except Exception as e:
         return {"success" : False, 
                 "error" : str(e)}
+    
+@User_router.post("/email/verify")
+async def send_verify_email(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_send_verfify_email(current_user)]}
+
+@User_router.post("/confirm")
+async def confirm_verify_email(code : str, current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_confirm_verify_email(code, current_user)]}
+
 
 # @account_router.post("/login")
 # async def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):

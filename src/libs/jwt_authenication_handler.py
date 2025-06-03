@@ -33,6 +33,7 @@ async def jwt_validator(token: Annotated[str, Depends(oauth2_scheme)]):
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         if payload['is_refresh_token'] is True:
+             print("this is refresh token")
              raise credentials_exception
         # if payload['role'] is None:
         #      raise credentials_exception
@@ -49,6 +50,9 @@ async def jwt_validator(token: Annotated[str, Depends(oauth2_scheme)]):
     except PyJWTError:
         raise credentials_exception
     user = await User.find_one({"username": username})
+
+    if user.is_email_verification == False :
+        raise credentials_exception
     if user is None:
         raise credentials_exception
     
@@ -83,3 +87,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         acc_info = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         username: str = acc_info.get("username")
         return username
+
+
+

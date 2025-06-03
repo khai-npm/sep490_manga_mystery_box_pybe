@@ -53,6 +53,7 @@ def create_access_token(data: dict, expires_delta: float | None = None):
         "token_type": "bearer",
         "username": data["username"],
         "role":data["role_id"],
+        "is_email_verification":data["is_email_verification"]
     }
 
 def do_refresh_token(token : str | None = None):
