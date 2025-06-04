@@ -24,6 +24,12 @@ load_dotenv()
 # subject = "Test Email from Python"
 # body = "Hello, this is a test email sent from Python."
 
+async def delete_expire_code():
+    all_data = await PendingEmailVerification.find().to_list()
+    for data in all_data:
+        if data.expire_time < datetime.now():
+            await data.delete()
+
 
 async def generate_random_string_token():
     return ''.join(str(random.randint(0, 9)) for _ in range(6))
@@ -95,12 +101,13 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
 async def action_send_verfify_email(data: str):
     try:
         code = await generate_random_string_token()
-        print(code)
-        current_user = await User.find_one(User.username == data)
-        print(current_user)
+        current_user = await User.find_one(User.email == data)
+        
+        if current_user.is_email_verification is True:
+            raise Exception("already verified")
         
         new_verify_session = PendingEmailVerification(
-        email=current_user.email,
+        email=data,
         code=hash_password_util.HashPassword(code),
         expire_time=datetime.now() + timedelta(minutes=30)
         )
@@ -113,7 +120,7 @@ async def action_send_verfify_email(data: str):
 
         msg = EmailMessage()
         msg["From"] = sender_email
-        msg["To"] = current_user.email
+        msg["To"] = data
         msg["Subject"] = subject
         msg.set_content(body)
 
@@ -125,14 +132,14 @@ async def action_send_verfify_email(data: str):
 
 #================================================================
 
-        return current_user.email + "verification code sent !"
+        return data + "verification code sent !"
 
     except Exception as e:
         raise HTTPException(detail= str(e), status_code=400)
 
 async def action_confirm_verify_email(code : str, current_user : str):
     try:
-        user = await User.find_one(User.username == current_user)
+        user = await User.find_one(User.email == current_user)
         current_verify_session = await PendingEmailVerification.find_one(PendingEmailVerification.email == user.email)
         if current_verify_session.expire_time < datetime.now():
             raise Exception("invalid time")
@@ -140,10 +147,22 @@ async def action_confirm_verify_email(code : str, current_user : str):
         if verify_password(plain_pwd=code, hashed_pwd=current_verify_session.code) is False:
             raise Exception("invalid code")
         
-        # user.is_email_verification = True
+        if user.is_email_verification is True:
+            raise Exception("how can this function called ?")
         await user.set({User.is_email_verification: True})
         await current_verify_session.delete()
 
         return "success!"
+    
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+
+
+    
+
+
+
+    
+
+    
