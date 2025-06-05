@@ -1,0 +1,10 @@
+beanie==1.29.0
+fastapi==0.115.12
+motor==3.7.1
+passlib==1.7.4
+pydantic==2.11.5
+PyJWT==2.10.1
+PyJWT==2.10.1
+python-dotenv==1.1.0
+python_bcrypt==0.3.2
+uvicorn==0.34.3

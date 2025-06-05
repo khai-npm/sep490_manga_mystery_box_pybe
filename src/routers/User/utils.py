@@ -100,6 +100,7 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
 
 async def action_send_verfify_email(data: str):
     try:
+        await delete_expire_code()
         code = await generate_random_string_token()
         current_user = await User.find_one(User.email == data)
         
@@ -151,6 +152,7 @@ async def action_confirm_verify_email(code : str, current_user : str):
             raise Exception("how can this function called ?")
         await user.set({User.is_email_verification: True})
         await current_verify_session.delete()
+        await delete_expire_code()
 
         return "success!"
     
