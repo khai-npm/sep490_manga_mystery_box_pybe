@@ -12,6 +12,7 @@ from src.libs.hash_password import hash_password_util
 from datetime import datetime, timedelta
 from src.libs.jwt_authenication_bearer import (authenticate_user, 
                                                create_access_token)
+from src.libs.check_exist_mail import is_valid_email
 from src.libs.jwt_authenication_bearer import verify_password
 import os
 from dotenv import load_dotenv
@@ -52,6 +53,12 @@ async def action_user_register(request_data : RegisterFormSchema):
 
         if await User.find_one(User.username == request_data.username):
             raise HTTPException(detail="username already exist", status_code=400)
+        
+        if await User.find_one(User.email == request_data.email) is not None:
+            raise Exception("registered email")
+        
+        if is_valid_email(request_data.email) is False:
+            raise Exception("email not existed")
         
         new_account = User(
             username = request_data.username,
@@ -100,6 +107,10 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
 
 async def action_send_verfify_email(data: str):
     try:
+
+        if await User.find_one(User.email == data) is None:
+            raise Exception("email not in system")
+        
         await delete_expire_code()
         code = await generate_random_string_token()
         current_user = await User.find_one(User.email == data)
