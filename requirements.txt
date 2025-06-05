@@ -8,3 +8,4 @@ PyJWT==2.10.1
 python-dotenv==1.1.0
 python_bcrypt==0.3.2
 uvicorn==0.34.3
+python-multipart
