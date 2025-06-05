@@ -38,7 +38,7 @@ async def test_jwt():
 async def send_verify_email(email : str):
     return {"data" : [await action_send_verfify_email(email)]}
 
-@User_router.post("/confirm", response_model=BodyResponseSchema)
+@User_router.post("/email/confirm", response_model=BodyResponseSchema)
 async def confirm_verify_email(code : str, current_email : str):
     return {"data" : [await action_confirm_verify_email(code, current_email)]}
 
