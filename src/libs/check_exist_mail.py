@@ -1,6 +1,5 @@
 import re
 import smtplib
-from verify_email import verify_email
 import requests
 import dns.resolver
 import os
