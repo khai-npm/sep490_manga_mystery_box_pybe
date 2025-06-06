@@ -111,12 +111,24 @@ async def action_send_verfify_email(data: str):
         if await User.find_one(User.email == data) is None:
             raise Exception("email not in system")
         
+        is_in_curent_session = await PendingEmailVerification.find_one(PendingEmailVerification.email==data)
+        
+        if is_in_curent_session is not None:
+            # time = datetime.now() - (is_in_curent_session.expire_time - timedelta(minutes=30))
+            if datetime.now() - (is_in_curent_session.expire_time - timedelta(minutes=30)) < timedelta(seconds=30):
+                raise Exception("re-send waiting time is 30s, try again later")
+            
+            else:
+                await is_in_curent_session.delete()
+
+
         await delete_expire_code()
         code = await generate_random_string_token()
         current_user = await User.find_one(User.email == data)
         
         if current_user.is_email_verification is True:
             raise Exception("already verified")
+        
         
         new_verify_session = PendingEmailVerification(
         email=data,
