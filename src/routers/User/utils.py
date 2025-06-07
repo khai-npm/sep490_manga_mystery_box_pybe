@@ -88,6 +88,20 @@ async def action_user_register(request_data : RegisterFormSchema):
 
 async def action_login(from_data : OAuth2PasswordRequestForm):
     try:
+        email_db_user = await User.find_one(User.email == from_data.username)
+        if email_db_user:
+            if email_db_user.is_active is False:
+                          raise Exception("inactive account")
+
+            email_db_user = email_db_user.model_dump()
+
+            if not authenticate_user(email_db_user, from_data.password):
+                raise Exception("incorrect username or password!")
+            
+            return create_access_token(email_db_user)
+
+
+
         user_in_db = await User.find_one(User.username == from_data.username)
         if not user_in_db:
             raise HTTPException(detail="account not found", status_code=404)
