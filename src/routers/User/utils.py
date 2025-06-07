@@ -1,3 +1,4 @@
+import re
 from fastapi import HTTPException
 import random
 import smtplib
@@ -24,6 +25,21 @@ load_dotenv()
 # receiver_email = "recipient@example.com"
 # subject = "Test Email from Python"
 # body = "Hello, this is a test email sent from Python."
+
+
+def check_password(password):
+    print("this is running")
+    if len(password) < 8 or len(password) > 35:
+        return False
+    if not re.search(r"[A-Z]", password):
+        return False
+    if not re.search(r"[a-z]", password):
+        return False
+    if not re.search(r"[0-9]", password):
+        return False
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False
+    return True
 
 async def delete_expire_code():
     all_data = await PendingEmailVerification.find().to_list()
@@ -57,6 +73,9 @@ async def action_user_register(request_data : RegisterFormSchema):
         if await User.find_one(User.email == request_data.email) is not None:
             raise Exception("registered email")
         
+        if check_password(request_data.password) is False:
+            raise Exception("Password must be at least 8 characters, include uppercase, lowercase, number, and special character.")
+
         if is_valid_email(request_data.email) is False:
             raise Exception("email not existed")
         
