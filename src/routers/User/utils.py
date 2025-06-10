@@ -162,11 +162,19 @@ async def action_send_verfify_email(data: str):
         if current_user.is_email_verification is True:
             raise Exception("already verified")
         
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        html_file_path = os.path.join(current_dir, "..", "email_pattern.html")
+        print(os.getcwd())
+        with open("./src/email_box.html", "r", encoding="utf-8") as f:
+            html_template = f.read()
+        html_content = html_template.replace("{code}", code)
+
+        
         
         new_verify_session = PendingEmailVerification(
         email=data,
         code=hash_password_util.HashPassword(code),
-        expire_time=datetime.now() + timedelta(minutes=30)
+        expire_time=datetime.now() + timedelta(minutes=5)
         )
 
         await new_verify_session.insert()
@@ -175,11 +183,13 @@ async def action_send_verfify_email(data: str):
         body = "your code is: " + code
         sender_email = os.getenv("SENDER_EMAIL")
 
+
         msg = EmailMessage()
         msg["From"] = sender_email
         msg["To"] = data
         msg["Subject"] = subject
         msg.set_content(body)
+        msg.add_alternative(html_content, subtype='html')
 
 #========================[AI generated code]====================
 
