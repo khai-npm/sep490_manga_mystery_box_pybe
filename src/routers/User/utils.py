@@ -66,6 +66,12 @@ async def action_user_register(request_data : RegisterFormSchema):
         
         if contains_special_character(request_data.username):
             raise HTTPException(detail="data input invalid", status_code=400)
+        
+        if not (3 <= len(request_data.username) <= 30):
+            return HTTPException(detail="username's length must be in 3 -> 10 character")
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", request_data.username):
+            raise HTTPException(detail="username only able for containing letter, number and underscore")
 
         if await User.find_one(User.username == request_data.username):
             raise HTTPException(detail="username already exist", status_code=400)
