@@ -14,4 +14,4 @@ class hash_password_util:
         # Hashing the password
         hashed = bcrypt.hashpw(tmpPwd, bcrypt.gensalt())
 
-        return hashed
+        return hashed.decode('utf-8')

@@ -325,13 +325,16 @@ async def action_confirm_recovery_request(data : PasswordRecoverySchema):
                 await current_verification_session.set({PendingRecoveryVerification.wrong_code_count: current_verification_session.wrong_code_count+1})
                 raise Exception("invalid code")
             
+            if check_password is False:
+                raise Exception("Password must be at least 8 characters, include uppercase, lowercase, number, and special character.")
+            
             current_user : User = await User.find_one(User.email == data.email)
             if not current_user:
                 raise HTTPException(detail="user not found", status_code=404)
             
             await current_user.set({User.password: hash_password_util.HashPassword(data.password)})
             await current_verification_session.delete()
-            delete_expire_code()
+            await delete_expire_code()
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
 
