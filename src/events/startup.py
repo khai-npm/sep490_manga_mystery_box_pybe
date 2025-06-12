@@ -20,6 +20,7 @@ async def event_01_init_db():
     from src.models.PermissionRole import PermissionRole
     from src.models.Role import Role
     from src.models.PendingEmailVerification import PendingEmailVerification
+    from src.models.PendingRecoveryVerification import PendingRecoveryVerification
     from motor.motor_asyncio import AsyncIOMotorClient
     from src.database.get_db_instance import connection_string
 
@@ -33,7 +34,8 @@ async def event_01_init_db():
                                                              Permission, 
                                                              PermissionRole, 
                                                              Role,
-                                                             PendingEmailVerification]
+                                                             PendingEmailVerification,
+                                                             PendingRecoveryVerification]
     )
     # if await account.count() == 0:
     #     new_account = account(username="admin",

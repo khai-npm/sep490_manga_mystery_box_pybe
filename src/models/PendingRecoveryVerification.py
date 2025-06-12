@@ -3,11 +3,12 @@ from datetime import datetime
 from fastapi import Form
 from pydantic import BaseModel
 
-class PendingEmailVerification(Document):
+class PendingRecoveryVerification(Document):
     email : str
     code : str
     expire_time : datetime
     wrong_code_count : int
 
     class Settings:
-        name = "PendingEmailVerification"
+        name = "PendingRecoveryVerification"
+        wrong_code_count : int

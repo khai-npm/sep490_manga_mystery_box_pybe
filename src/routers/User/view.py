@@ -3,10 +3,13 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas.BodyResponseSchema import BodyResponseSchema
 from src.schemas.RegisterFormSchema import RegisterFormSchema
+from src.schemas.PasswordRecoverySchema import PasswordRecoverySchema
 from src.routers.User.utils import (action_user_register, 
                                     action_login,
                                     action_send_verfify_email,
-                                    action_confirm_verify_email)
+                                    action_confirm_verify_email,
+                                    action_send_recovery_email,
+                                    action_confirm_recovery_request)
 from src.libs.jwt_authenication_handler import get_current_user, jwt_validator
 from src.libs.jwt_authenication_bearer import do_refresh_token
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
@@ -14,7 +17,7 @@ from src.libs.jwt_authenication_bearer import do_refresh_token
 # from src.lib.jwt_authenication_handler import get_current_user, jwt_validator
 from src.models.User import User
 
-User_router = APIRouter(prefix="/api/User", tags=["User"])
+User_router = APIRouter(prefix="/api/user", tags=["User"])
 User_router.post("/register")
 
 
@@ -31,7 +34,7 @@ async def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()])
 async def refresh_token(token : str):
     return await do_refresh_token(token)
 
-@User_router.get("/jwt_test", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+@User_router.get("/jwt-test", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def test_jwt():
     try:
         return {"success" : True}
@@ -46,6 +49,14 @@ async def send_verify_email(email : str):
 @User_router.post("/email/confirm", response_model=BodyResponseSchema)
 async def confirm_verify_email(code : str, current_email : str):
     return {"data" : [await action_confirm_verify_email(code, current_email)]}
+
+@User_router.post("/password-recovery/verify", response_model=BodyResponseSchema)
+async def send_recovery_email(email : str):
+    return {"data" : [await action_send_recovery_email(email)]}
+
+@User_router.post("/password-recovery/confirm", response_model=BodyResponseSchema)
+async def confirm_recovery_request(request_data : PasswordRecoverySchema):
+    return {"data" : [await action_confirm_recovery_request(request_data)]}
 
 
 # @account_router.post("/login")

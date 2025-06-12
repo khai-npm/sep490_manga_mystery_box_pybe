@@ -7,9 +7,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas.RegisterFormSchema import RegisterFormSchema
 from src.models.User import User
 from src.models.PendingEmailVerification import PendingEmailVerification
+from src.models.PendingRecoveryVerification import PendingRecoveryVerification
 from src.schemas.BodyResponseSchema import BodyResponseSchema
 from src.libs.regular_expression import contains_special_character
 from src.libs.hash_password import hash_password_util
+from src.schemas.PasswordRecoverySchema import PasswordRecoverySchema
 from datetime import datetime, timedelta
 from src.libs.jwt_authenication_bearer import (authenticate_user, 
                                                create_access_token)
@@ -45,6 +47,11 @@ async def delete_expire_code():
     all_data = await PendingEmailVerification.find().to_list()
     for data in all_data:
         if data.expire_time < datetime.now():
+            await data.delete()
+
+    all_data2 = await PendingRecoveryVerification.find().to_list()
+    for data2 in all_data2:
+        if data2.expire_time < datetime.now():
             await data.delete()
 
 
@@ -180,7 +187,8 @@ async def action_send_verfify_email(data: str):
         new_verify_session = PendingEmailVerification(
         email=data,
         code=hash_password_util.HashPassword(code),
-        expire_time=datetime.now() + timedelta(minutes=5)
+        expire_time=datetime.now() + timedelta(minutes=5),
+        wrong_code_count=0
         )
 
         await new_verify_session.insert()
@@ -216,12 +224,18 @@ async def action_confirm_verify_email(code : str, current_user : str):
         current_verify_session = await PendingEmailVerification.find_one(PendingEmailVerification.email == user.email)
         if current_verify_session.expire_time < datetime.now():
             raise Exception("invalid time")
+        
+        if current_verify_session.wrong_code_count > 5:
+            await current_verify_session.delete()
+            raise Exception(" retry attemp's limit exeeded!  re-send OTP to start verification again")
 
         if verify_password(plain_pwd=code, hashed_pwd=current_verify_session.code) is False:
+            await current_verify_session.set({PendingEmailVerification.wrong_code_count : current_verify_session.wrong_code_count+1})
             raise Exception("invalid code")
         
         if user.is_email_verification is True:
             raise Exception("how can this function called ?")
+        
         await user.set({User.is_email_verification: True})
         await current_verify_session.delete()
         await delete_expire_code()
@@ -230,6 +244,98 @@ async def action_confirm_verify_email(code : str, current_user : str):
     
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_send_recovery_email(data : str):
+    try:
+
+        if await User.find_one(User.email == data) is None:
+            raise Exception("email not in system")
+        
+        is_in_curent_session = await PendingRecoveryVerification.find_one(PendingRecoveryVerification.email==data)
+        
+        if is_in_curent_session is not None:
+            # time = datetime.now() - (is_in_curent_session.expire_time - timedelta(minutes=30))
+            if datetime.now() - (is_in_curent_session.expire_time - timedelta(minutes=30)) < timedelta(seconds=30):
+                raise Exception("re-send waiting time is 30s, try again later")
+            
+            else:
+                await is_in_curent_session.delete()
+
+
+        await delete_expire_code()
+        code = await generate_random_string_token()
+        current_user = await User.find_one(User.email == data)
+        
+        # current_dir = os.path.dirname(os.path.abspath(__file__))
+        # html_file_path = os.path.join(current_dir, "..", "email_pattern.html")
+        with open("./src/recovery_box.html", "r", encoding="utf-8") as f:
+            html_template = f.read()
+        html_content = html_template.replace("{code}", code)
+
+        
+        
+        new_verify_session = PendingRecoveryVerification(
+        email=data,
+        code=hash_password_util.HashPassword(code),
+        expire_time=datetime.now() + timedelta(minutes=5),
+        wrong_code_count=0
+        )
+
+        await new_verify_session.insert()
+
+        subject = "Manga Mystery Box email verify notification"
+        body = "email recovery: " + code
+        sender_email = os.getenv("SENDER_EMAIL")
+
+
+        msg = EmailMessage()
+        msg["From"] = sender_email
+        msg["To"] = data
+        msg["Subject"] = subject
+        msg.set_content(body)
+        msg.add_alternative(html_content, subtype='html')
+
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender_email, os.getenv("SENDER_PASSWORD"))
+            smtp.send_message(msg)
+
+
+        return data + " verification code sent !"
+
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+
+
+async def action_confirm_recovery_request(data : PasswordRecoverySchema):
+    try:
+            
+            current_verification_session : PendingRecoveryVerification = await PendingRecoveryVerification.find_one(PendingRecoveryVerification.email == data.email)
+            if not current_verification_session:
+                raise HTTPException(detail="verification not found" , status_code=404)
+            
+            if current_verification_session.wrong_code_count > 5:
+                await current_verification_session.delete()
+                raise Exception("retry attemp's limit exeeded!  re-send OTP to start verification again")
+            
+            if current_verification_session.expire_time < datetime.now():
+                raise Exception("invalid time")
+
+            if verify_password(plain_pwd=data.code, hashed_pwd=current_verification_session.code) is False:
+                await current_verification_session.set({PendingRecoveryVerification.wrong_code_count: current_verification_session.wrong_code_count+1})
+                raise Exception("invalid code")
+            
+            current_user : User = await User.find_one(User.email == data.email)
+            if not current_user:
+                raise HTTPException(detail="user not found", status_code=404)
+            
+            await current_user.set({User.password: hash_password_util.HashPassword(data.password)})
+            await current_verification_session.delete()
+            delete_expire_code()
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+
+    
     
 
 
