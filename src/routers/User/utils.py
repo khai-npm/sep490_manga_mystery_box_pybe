@@ -52,7 +52,7 @@ async def delete_expire_code():
     all_data2 = await PendingRecoveryVerification.find().to_list()
     for data2 in all_data2:
         if data2.expire_time < datetime.now():
-            await data.delete()
+            await data2.delete()
 
 
 async def generate_random_string_token():
@@ -120,40 +120,44 @@ async def action_user_register(request_data : RegisterFormSchema):
 
 async def action_login(from_data : OAuth2PasswordRequestForm):
     try:
-        email_db_user = await User.find_one(User.email == from_data.username)
-        if email_db_user:
-            if email_db_user.is_active is False:
-                          raise Exception("inactive account")
+        username_db_user = await User.find_one(User.username == from_data.username)
+        if username_db_user is not None:
+            user_in_db = username_db_user
+        else:
+            email_db_user = await User.find_one(User.email == from_data.username)
+            user_in_db = email_db_user
 
-            email_db_user = email_db_user.model_dump()
-
-            if not authenticate_user(email_db_user, from_data.password):
-                raise Exception("incorrect username or password!")
-            
-            return create_access_token(email_db_user)
-
-
-
-        user_in_db = await User.find_one(User.username == from_data.username)
         if not user_in_db:
             raise HTTPException(detail="account not found", status_code=404)
         
         if user_in_db.is_active is False:
             raise Exception("inactive account")
         
-        user_in_db = user_in_db.model_dump()
+        user_in_db_dump = user_in_db.model_dump()
+
+        if datetime.now() < user_in_db.login_lock_time:
+            raise Exception("too many retry, this account will be unlocked at : " + user_in_db.login_lock_time.strftime("%H:%M"))
         
-        if not authenticate_user(user_in_db, from_data.password):
+        if not authenticate_user(user_in_db_dump, from_data.password):
+            print("tai khoan nha pwd sai lan thu " + str(user_in_db.wrong_password_count))
+            await user_in_db.set({User.wrong_password_count: user_in_db.wrong_password_count + 1 })
+            if user_in_db.wrong_password_count == 10:
+                await user_in_db.set({User.login_lock_time:  datetime.now() + timedelta(minutes=10)})
+
+            if user_in_db.wrong_password_count == 15:
+                await user_in_db.set({User.login_lock_time: datetime.now() + timedelta(minutes=30)})
+
+            if user_in_db.wrong_password_count == 20:
+                await user_in_db.set({User.is_active : False})
             raise Exception("incorrect username or password!")
 
-        return create_access_token(user_in_db)
+        return create_access_token(user_in_db_dump)
     
     except Exception as e:
         return BodyResponseSchema(success=False, error=str(e))
 
 async def action_send_verfify_email(data: str):
     try:
-
         if await User.find_one(User.email == data) is None:
             raise Exception("email not in system")
         
@@ -166,12 +170,15 @@ async def action_send_verfify_email(data: str):
             
             else:
                 await is_in_curent_session.delete()
-
+        
+        
 
         await delete_expire_code()
         code = await generate_random_string_token()
+ 
         current_user = await User.find_one(User.email == data)
-        
+
+
         if current_user.is_email_verification is True:
             raise Exception("already verified")
         
