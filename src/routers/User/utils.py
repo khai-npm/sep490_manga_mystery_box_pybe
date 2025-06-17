@@ -104,7 +104,7 @@ async def action_user_register(request_data : RegisterFormSchema):
             wallet_id="",
             wrong_password_count=0,
             login_lock_time=datetime.now(),
-            role_id="",
+            role_id="user",
         )
         
         await new_account.insert()
@@ -150,7 +150,8 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
             if user_in_db.wrong_password_count == 20:
                 await user_in_db.set({User.is_active : False})
             raise Exception("incorrect username or password!")
-
+        
+        await user_in_db.set({User.wrong_password_count: 0})
         return create_access_token(user_in_db_dump)
     
     except Exception as e:

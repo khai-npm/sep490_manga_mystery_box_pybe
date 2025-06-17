@@ -1,13 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
-# from src.routers.products.views import product_router
-# from src.routers.orders.views import order_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from src.events.startup import events as startup_event
-# from src.routers.account.views import account_router
-# from src.routers.task.views import task_router
-# from src.routers.admin.views import admin_router
 from src.routers.User.view import User_router
+from src.routers.Admin.views import admin_router
 
 
 app = FastAPI(on_startup=startup_event)
@@ -43,10 +39,8 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
     )
 
 app.include_router(User_router)
+app.include_router(admin_router)
 
-# app.include_router(account_router)
-# app.include_router(task_router)
-# app.include_router(admin_router)
 
 @app.get("/")
 async def root():

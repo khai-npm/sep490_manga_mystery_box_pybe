@@ -7,13 +7,6 @@ from src.libs.hash_password import hash_password_util
 
 async def event_01_init_db():
     import os
-
-    # from src.models.account import account
-    # from src.models.participant import participant
-    # from src.models.payment import payment
-    # from src.models.server import server
-    # from src.models.task import task
-    # from src.models.token import token
     from src.models.User import User
     from src.models.DigitalWallet import DigitalWallet
     from src.models.Permission import Permission
@@ -37,24 +30,10 @@ async def event_01_init_db():
                                                              PendingEmailVerification,
                                                              PendingRecoveryVerification]
     )
-    # if await account.count() == 0:
-    #     new_account = account(username="admin",
-    #                             password=hash_password_util.HashPassword("1"), 
-    #                             create_date=datetime.now(), 
-    #                             wallet=0,
-    #                             token_id= [""],
-    #                             discord_user_id="",
-    #                             payment_info_id=[""],
-    #                             role = 2,
-    #                             status=True
-    #                             )
-    #     await new_account.insert()
-    #     print("insert new admin account")
 
     if await Permission.count() == 0:
         print("permission document not found! improting sample data....")
         new_permission = Permission(
-            permission_name="sample permission",
             perrmission_code="PER_SAMPLE_0",
             permission_descripition="only for database testing"
         )
@@ -66,7 +45,7 @@ async def event_01_init_db():
     if await Role.count() ==  0:
         print("Role document not found! improting sample data....")
         new_role = Role(
-            role_name= "sample role"
+            role_name= "user"
         )
 
         await new_role.insert()
@@ -74,7 +53,7 @@ async def event_01_init_db():
     if await PermissionRole.count() == 0:
                 
         print("PermissionRole document not found! improting sample data....")
-        new_per_role = PermissionRole(permission_id="sample", role_id="sample")
+        new_per_role = PermissionRole(permission_code="action_sample", role_name="user")
         await new_per_role.insert()
         print("PermissionRole permission imported")
 
@@ -95,7 +74,7 @@ async def event_01_init_db():
                         is_email_verification = False,
                         wrong_password_count=0,
                         login_lock_time=datetime.now(),
-                        role_id="sample",
+                        role_id="user",
                         )
         await new_user.insert()
         print("sample user imported")

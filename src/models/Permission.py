@@ -4,7 +4,6 @@ from fastapi import Form
 from pydantic import BaseModel
 
 class Permission(Document):
-    permission_name : str
     perrmission_code : str
     permission_descripition : str
 

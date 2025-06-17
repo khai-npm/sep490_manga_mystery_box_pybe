@@ -4,8 +4,8 @@ from fastapi import Form
 from pydantic import BaseModel
 
 class PermissionRole(Document):
-    permission_id : str
-    role_id : str
+    permission_code : str
+    role_name : str
 
     class Settings:
         name = "PermissionRole"
