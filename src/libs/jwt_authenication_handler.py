@@ -21,7 +21,7 @@ if not JWT_ALGORITHM or not JWT_SECRET:
     raise ValueError("JWT authorizer algorithm or secert not found!")
 print("using algo :" + JWT_ALGORITHM)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/User/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/user/auth/login")
 
 
 async def jwt_validator(token: Annotated[str, Depends(oauth2_scheme)]):

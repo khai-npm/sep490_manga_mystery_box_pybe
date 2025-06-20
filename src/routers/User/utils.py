@@ -64,15 +64,15 @@ async def action_user_register(request_data : RegisterFormSchema):
             request_data.password =="" or
              request_data.email == "" ):
 
-            raise HTTPException(detail="data input invalid", status_code=401)
+            raise HTTPException(detail="data input invalid", status_code=403)
         
         if (" " in request_data.username or
             " " in request_data.password or
             " " in request_data.email ):
-            raise HTTPException(detail="data input invalid", status_code=400)
+            raise HTTPException(detail="data input invalid", status_code=403)
         
         if contains_special_character(request_data.username):
-            raise HTTPException(detail="data input invalid", status_code=400)
+            raise HTTPException(detail="data input invalid", status_code=403)
         
         if not (3 <= len(request_data.username) <= 30):
             return HTTPException(detail="username's length must be in 3 -> 10 character")
@@ -131,15 +131,14 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
             raise HTTPException(detail="account not found", status_code=404)
         
         if user_in_db.is_active is False:
-            raise Exception("inactive account")
+            raise HTTPException(detail="inactive account", status_code=403)
         
         user_in_db_dump = user_in_db.model_dump()
 
         if datetime.now() < user_in_db.login_lock_time:
-            raise Exception("too many retry, this account will be unlocked at : " + user_in_db.login_lock_time.strftime("%H:%M"))
+            raise HTTPException(detail="too many retry, this account will be unlocked at : " + user_in_db.login_lock_time.strftime("%H:%M"), status_code=403)
         
         if not authenticate_user(user_in_db_dump, from_data.password):
-            print("tai khoan nha pwd sai lan thu " + str(user_in_db.wrong_password_count))
             await user_in_db.set({User.wrong_password_count: user_in_db.wrong_password_count + 1 })
             if user_in_db.wrong_password_count == 10:
                 await user_in_db.set({User.login_lock_time:  datetime.now() + timedelta(minutes=10)})
@@ -149,13 +148,17 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
 
             if user_in_db.wrong_password_count == 20:
                 await user_in_db.set({User.is_active : False})
-            raise Exception("incorrect username or password!")
+            raise HTTPException(status_code=403, detail="incorrect username or password!")
         
         await user_in_db.set({User.wrong_password_count: 0})
         return create_access_token(user_in_db_dump)
-    
+
+    except HTTPException as http_error:
+        raise http_error
+
+
     except Exception as e:
-        return BodyResponseSchema(success=False, error=str(e))
+        raise HTTPException(detail=str(e), status_code=400)
 
 async def action_send_verfify_email(data: str):
     try:
@@ -311,6 +314,8 @@ async def action_send_recovery_email(data : str):
 
         return data + " verification code sent !"
 
+    except HTTPException as http_error:
+        raise http_error
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
 

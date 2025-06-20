@@ -20,3 +20,15 @@ async def action_change_permission_code_description(permission_code : str, desc 
 
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+
+async def action_get_role_infomation_by_name(role_name : str):
+    try:
+        get_role = await Role.find_one(Role.role_name == role_name)
+        if not get_role:
+            raise HTTPException(detail="role not found", status_code=404)
+        
+        return get_role
+
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
