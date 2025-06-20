@@ -128,15 +128,16 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
             user_in_db = email_db_user
 
         if not user_in_db:
-            raise HTTPException(detail="account not found", status_code=404)
+            raise HTTPException(detail="Login Failed ! Incorrect username or password!", status_code=404)
         
         if user_in_db.is_active is False:
-            raise HTTPException(detail="inactive account", status_code=403)
+            raise HTTPException(detail="Login Failed! Your account has been suspended for policy violations. ", status_code=403)
         
         user_in_db_dump = user_in_db.model_dump()
 
         if datetime.now() < user_in_db.login_lock_time:
-            raise HTTPException(detail="too many retry, this account will be unlocked at : " + user_in_db.login_lock_time.strftime("%H:%M"), status_code=403)
+            raise HTTPException(detail="Your account has been temporarily locked due to multiple incorrect password attempts. " \
+        "This account will be unlocked at : " + user_in_db.login_lock_time.strftime("%H:%M"), status_code=403)
         
         if not authenticate_user(user_in_db_dump, from_data.password):
             await user_in_db.set({User.wrong_password_count: user_in_db.wrong_password_count + 1 })
@@ -148,7 +149,7 @@ async def action_login(from_data : OAuth2PasswordRequestForm):
 
             if user_in_db.wrong_password_count == 20:
                 await user_in_db.set({User.is_active : False})
-            raise HTTPException(status_code=403, detail="incorrect username or password!")
+            raise HTTPException(status_code=403, detail="Incorrect username or password!")
         
         await user_in_db.set({User.wrong_password_count: 0})
         return create_access_token(user_in_db_dump)
