@@ -32,3 +32,26 @@ async def action_get_role_infomation_by_name(role_name : str):
 
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_add_new_role(role_name : str):
+    try:
+
+        new_role = Role(role_name=role_name)
+        await new_role.insert()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_get_all_permission():
+    try:
+        all_per = Permission.find()
+        return all_per.to_list()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
