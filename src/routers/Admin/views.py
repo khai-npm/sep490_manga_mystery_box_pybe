@@ -65,7 +65,7 @@ async def get_all_permission(api_key: str = Depends(get_api_key)):
 async def change_permisison_description(permission_code : str, desc : str ,api_key: str = Depends(get_api_key)):
     return {"data" : [await action_change_permission_code_description(permission_code, desc)]}
 
-@admin_router.put("/role/{user_id}/{role_name}")
+@admin_router.patch("/role/{user_id}/{role_name}")
 async def change_role_user(user_id : str, role_name : str, api_key: str = Depends(get_api_key)):
     raise HTTPException(detail="service unavaible", status_code=503)
     return {"data" : "none"}
