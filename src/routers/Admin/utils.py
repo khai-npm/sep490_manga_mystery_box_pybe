@@ -47,7 +47,7 @@ async def action_add_new_role(role_name : str):
     
 async def action_get_all_permission():
     try:
-        all_per = Permission.find()
+        all_per = Permission.find_all()
         return all_per.to_list()
 
     except HTTPException as http_e:

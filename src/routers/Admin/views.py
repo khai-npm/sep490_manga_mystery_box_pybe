@@ -44,19 +44,28 @@ async def get_api_key(
 async def get_all_role(api_key: str = Depends(get_api_key)):
     return {"data": [await action_get_all_role()]}
 
-
-@admin_router.patch("/permission/{permission_code}", response_model=BodyResponseSchema)
-async def change_permisison_description(permission_code : str, desc : str ,api_key: str = Depends(get_api_key)):
-    return {"data" : [await action_change_permission_code_description(permission_code, desc)]}
-
 @admin_router.get("/role/{role_name}", response_model=BodyResponseSchema)
 async def get_role_infomation_by_name(role_name : str, api_key: str = Depends(get_api_key)):
     return {"data" : [await action_get_role_infomation_by_name(role_name)]}
 
 @admin_router.post("/role", response_model=BodyResponseSchema)
-async def add_new_role(role_name: str):
+async def add_new_role(role_name: str, api_key: str = Depends(get_api_key)):
     return {"data" : [await action_add_new_role(role_name)]}
 
+@admin_router.put("/role/{role_id}", response_model=BodyResponseSchema)
+async def update_role_name(role_id : str, new_role_name : str, api_key: str = Depends(get_api_key)):
+    raise HTTPException(detail="service unavaible", status_code=503)
+    return {"data" : [await action_update_role_name(role_name)]}
+
 @admin_router.get("/permission", response_model=BodyResponseSchema)
-async def get_all_permission(role_name : str):
-    return {"data" : [await action_get_all_permission(role_name)]}
+async def get_all_permission(api_key: str = Depends(get_api_key)):
+    return {"data" : [await action_get_all_permission()]}
+
+@admin_router.patch("/permission/{permission_code}", response_model=BodyResponseSchema)
+async def change_permisison_description(permission_code : str, desc : str ,api_key: str = Depends(get_api_key)):
+    return {"data" : [await action_change_permission_code_description(permission_code, desc)]}
+
+@admin_router.put("/role/{user_id}/{role_name}")
+async def change_role_user(user_id : str, role_name : str, api_key: str = Depends(get_api_key)):
+    raise HTTPException(detail="service unavaible", status_code=503)
+    return {"data" : "none"}
