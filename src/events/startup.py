@@ -14,6 +14,8 @@ async def event_01_init_db():
     from src.models.Role import Role
     from src.models.PendingEmailVerification import PendingEmailVerification
     from src.models.PendingRecoveryVerification import PendingRecoveryVerification
+    from src.models.Conversations import Conversations
+    from src.models.Messages import Messages
     from motor.motor_asyncio import AsyncIOMotorClient
     from src.database.get_db_instance import connection_string
 
@@ -28,7 +30,9 @@ async def event_01_init_db():
                                                              PermissionRole, 
                                                              Role,
                                                              PendingEmailVerification,
-                                                             PendingRecoveryVerification]
+                                                             PendingRecoveryVerification,
+                                                             Conversations,
+                                                             Messages]
     )
 
     if await Permission.count() == 0:
