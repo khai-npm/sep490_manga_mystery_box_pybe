@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbox WebSocket Test</title>
+</head>
+<body>
+    <h2>Chatbox WebSocket</h2>
+    <div id="messages" style="border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll;">
+    </div>
+    <input type="text" id="messageInput" placeholder="Type a message..." style="width: 80%;" />
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        // Fixed user_id and conversation_id
+        const userId = "684b06d7d201a61bd55171e5";
+        const conversationId = "68595bc36cea47a2149563b9";
+
+        // Create WebSocket connection
+        const ws = new WebSocket(`ws://localhost:8000/websocket/chatbox/${conversationId}/${userId}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hbmhraGFpMjYwNiIsInJvbGUiOiJ1c2VyIiwiaXNfcmVmcmVzaF90b2tlbiI6ZmFsc2UsImV4cCI6MTc1MDc4MjI0Ny43MzM3NTc1fQ.GLNeuyRrvgmy_d69qQ9htMLtTjNQWaHXAQpepf4xXpc`);
+
+        const messagesDiv = document.getElementById("messages");
+
+        ws.onopen = function () {
+            appendMessage("✅ Connected to chat server");
+        };
+
+        ws.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+
+                // Bỏ qua nếu là tin nhắn của chính mình (vì đã hiển thị rồi)
+                if (data.sender_id !== userId) {
+                    appendMessage(`👤 [${data.created_at}] Người khác: ${data.content}`);
+                }
+            } catch (e) {
+                console.error("Lỗi khi parse JSON:", e);
+            }
+        };
+
+        ws.onclose = function () {
+            appendMessage("❌ Disconnected");
+        };
+
+        ws.onerror = function (error) {
+            appendMessage("⚠️ WebSocket error");
+        };
+
+        function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const message = input.value.trim();
+            if (message === "") return;
+
+            // Hiển thị ngay tin nhắn của bản thân
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, "0") + ":" + now.getMinutes().toString().padStart(2, "0");
+            appendMessage(`🧑‍💻 [${time}] Bạn: ${message}`);
+
+            ws.send(message);
+            input.value = "";
+        }
+
+        function appendMessage(message) {
+            const msg = document.createElement("div");
+            msg.textContent = message;
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>

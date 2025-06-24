@@ -10,3 +10,4 @@ bcrypt==4.3.0
 uvicorn==0.34.3
 python-multipart==0.0.20
 requests==2.32.4
+websockets==15.0.1
