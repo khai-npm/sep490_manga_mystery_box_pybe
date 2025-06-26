@@ -7,7 +7,8 @@ from src.schemas.PasswordRecoverySchema import PasswordRecoverySchema
 from src.libs.jwt_authenication_handler import get_current_user, jwt_validator
 from src.libs.jwt_authenication_bearer import do_refresh_token
 from src.routers.Chatbox.utils import (action_create_conversation,
-                                       action_get_all_messages_from_conversation)
+                                       action_get_all_messages_from_conversation,
+                                       action_get_conservation_list)
 
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
@@ -29,4 +30,8 @@ async def get_all_messages_from_conversation(
     limit: int = Query(10, ge=1, le=100), 
     current_user : str = Depends(get_current_user)):
     return await action_get_all_messages_from_conversation(current_user, id, skip, limit)
+
+@chatbox_router.get("/conversation/me", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_conservation_list(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_get_conservation_list(current_user)]}
 

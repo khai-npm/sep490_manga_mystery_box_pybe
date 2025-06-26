@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from datetime import datetime
+from beanie.operators import Or
 from src.models.User import User
 from src.models.Conversations import Conversations
 from src.models.Messages import Messages
@@ -72,6 +73,25 @@ async def action_get_all_messages_from_conversation(
     
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_conservation_list(username : str):
+    try:
+        current_user = await User.find_one(User.username == username)
+        if not current_user:
+            raise HTTPException(detail="User not found", status_code=404)
+        
+        return await Conversations.find(Or(
+            Conversations.participant_1 == str(current_user.id),
+            Conversations.participant_2 == str(current_user.id)
+        )).to_list()
+    except HTTPException as http_error:
+        raise http_error
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+
+
+
     
 
     

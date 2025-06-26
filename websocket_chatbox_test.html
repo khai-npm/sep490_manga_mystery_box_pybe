@@ -16,7 +16,7 @@
         const conversationId = "68595bc36cea47a2149563b9";
 
         // Create WebSocket connection
-        const ws = new WebSocket(`ws://localhost:8000/websocket/chatbox/${conversationId}/${userId}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hbmhraGFpMjYwNiIsInJvbGUiOiJ1c2VyIiwiaXNfcmVmcmVzaF90b2tlbiI6ZmFsc2UsImV4cCI6MTc1MDc4MjI0Ny43MzM3NTc1fQ.GLNeuyRrvgmy_d69qQ9htMLtTjNQWaHXAQpepf4xXpc`);
+        const ws = new WebSocket(`wss://sep490-manga-mystery-box-pybe.onrender.com/websocket/chatbox/${conversationId}/${userId}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hbmhraGFpMjYwNiIsInJvbGUiOiJ1c2VyIiwiaXNfcmVmcmVzaF90b2tlbiI6ZmFsc2UsImV4cCI6MTc1MDc4MjI0Ny43MzM3NTc1fQ.GLNeuyRrvgmy_d69qQ9htMLtTjNQWaHXAQpepf4xXpc`);
 
         const messagesDiv = document.getElementById("messages");
 
