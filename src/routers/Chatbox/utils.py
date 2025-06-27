@@ -90,7 +90,19 @@ async def action_get_conservation_list(username : str):
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
 
+async def action_get_username_by_id(id : str):
+    try:
+        current_user = await User.find_one(User.id == ObjectId(id))
+        if not current_user:
+            raise HTTPException(detail="user not found", status_code=404)
+        
+        return current_user.username
 
+    except HTTPException as http_error:
+        raise http_error
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
 
     
 
