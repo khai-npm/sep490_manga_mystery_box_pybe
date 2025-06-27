@@ -1,6 +1,8 @@
 from src.models.Role import Role
 from fastapi import HTTPException
 from src.models.Permission import Permission
+from src.models.Conversations import Conversations
+from src.models.Messages import Messages
 
 async def action_get_all_role():
     try:
@@ -55,3 +57,20 @@ async def action_get_all_permission():
     
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_delete_all_message_from_conservation(id : str):
+    try:
+        all_chat = Messages.find(Messages.conversation_id == id)
+        async for chat in all_chat:
+            print(chat)
+            if not chat:
+                raise HTTPException(detail="not found", status_code=404)
+            await chat.delete()
+
+        return  "all done !"
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+

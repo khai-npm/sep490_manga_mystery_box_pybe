@@ -10,7 +10,8 @@ from src.libs.jwt_authenication_bearer import do_refresh_token
 from src.routers.Admin.utils import (action_change_permission_code_description,
                                      action_get_role_infomation_by_name,
                                      action_add_new_role,
-                                     action_get_all_permission)
+                                     action_get_all_permission,
+                                     action_delete_all_message_from_conservation)
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
 # from src.lib.jwt_authenication_handler import get_current_user, jwt_validator
@@ -69,3 +70,7 @@ async def change_permisison_description(permission_code : str, desc : str ,api_k
 async def change_role_user(user_id : str, role_name : str, api_key: str = Depends(get_api_key)):
     raise HTTPException(detail="service unavaible", status_code=503)
     return {"data" : "none"}
+
+@admin_router.delete("/conservation/{id}/message", response_model=BodyResponseSchema)
+async def delete_all_message_from_conservation(id : str, api_key: str = Depends(get_api_key)):
+    return {"data" : [await action_delete_all_message_from_conservation(id)]}
