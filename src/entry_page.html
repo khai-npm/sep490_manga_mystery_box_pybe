@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Mystery Box API</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f6fa;
+            color: #2f3640;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            background-color: #273c75;
+            color: white;
+            padding: 15px 20px;
+        }
+        header img {
+            height: 50px;
+            margin-right: 15px;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 6px solid #273c75;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #273c75;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #273c75;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background-color: #192a56;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #718093;
+            margin: 40px 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://raw.githubusercontent.com/khai-npm/sep490_manga_mystery_box_pybe/refs/heads/main/src/logo.png" alt="Logo">
+        <h1>[Manga Mystery Box] application programming interface (API)</h1>
+    </header>
+    <div class="container">
+        <div class="section">
+            <h2>📝 Swagger API Documentation</h2>
+            <p>Explore and test the RESTful APIs of the Manga Mystery Box application using Swagger UI.</p>
+            <a class="button" href="/docs">Open Swagger UI</a>
+        </div>
+        <div class="section">
+            <h2>📡 WebSocket Portal</h2>
+            <p>Connect and interact with the real-time chat features via WebSocket. Find details and usage examples in the WebSocket docs.</p>
+            <a class="button" href="/ws-docs">Open WebSocket Docs</a>
+        </div>
+    </div>
+    <footer>
+        &copy; 2025 Manga Mystery Box. All rights reserved.
+    </footer>
+</body>
+</html>

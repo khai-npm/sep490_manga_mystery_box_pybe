@@ -6,6 +6,8 @@ from src.routers.User.view import User_router
 from src.routers.Admin.views import admin_router
 from src.routers.Chatbox.views import chatbox_router
 from src.routers.websocket.chatbox.views import websocket_chatbox
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
 
 app = FastAPI(on_startup=startup_event)
@@ -46,6 +48,21 @@ app.include_router(chatbox_router)
 app.include_router(websocket_chatbox)
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+def entry_page_html():
+    with open("./src/entry_page.html", "r", encoding="utf-8") as f:
+        html_template = f.read()
+    return HTMLResponse(content=html_template, status_code=200)
+
+def ws_guide_html():
+    with open("./src/ws_guide.html", "r", encoding="utf-8") as f:
+        html_template = f.read()
+    return HTMLResponse(content=html_template, status_code=200)
+
+@app.get("/ws-docs", response_class=HTMLResponse)
+async def ws_docs_page(request : Request):
+    return ws_guide_html()
+
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return entry_page_html()
+
