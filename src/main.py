@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 
-app = FastAPI(on_startup=startup_event)
+app = FastAPI(on_startup=startup_event, root_path="/py")
 
 
 
