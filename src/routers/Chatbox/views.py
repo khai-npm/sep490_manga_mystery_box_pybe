@@ -20,8 +20,8 @@ import os
 chatbox_router = APIRouter(prefix="/api/chatbox", tags=["Chatbox"])
 
 
-@chatbox_router.post("/conversation", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
-async def create_conversation(user_id : str, current_user : str = Depends(get_current_user)):
+@chatbox_router.post("/conversation/{user_id}", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_conversation_to_user_id(user_id : str, current_user : str = Depends(get_current_user)):
     return {"data" : [await action_create_conversation(current_user, user_id)]}
 
 @chatbox_router.get("/messages", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)

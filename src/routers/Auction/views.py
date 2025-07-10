@@ -24,3 +24,8 @@ async def get_all_auction_list_user_side(current_user :str = Depends[get_current
 @Auction.get("/me",dependencies=Depends[jwt_validator], response_model=BodyResponseSchema)
 async def get_all_auction_user_hosed_side(current_user :str = Depends[get_current_user()]):
     return {"data" : [await action_get_all_auction_user_hosed_side(current_user)]}
+
+@Auction.post("/", dependencies=Depends[jwt_validator], response_model=BodyResponseSchema)
+async def create_new_auction_session(current_user : str = Depends[get_current_user()]):
+    return None
+    # return {"data" : [await action_create_new_auction_session()]}

@@ -81,8 +81,8 @@
 
     <div class="sub-section">
       <h3>🗂 Load chat history before connecting</h3>
-      <p>Before connecting to the WebSocket, get the conversation history with a specific user:</p>
-      <code>GET /api/chatboxconversation/user/${'{otherId}'}</code>
+      <p>Before connecting to the WebSocket, get the conversation history with a specific roomid:</p>
+      <code>GET /api/chatbox/messages?id=${conversationId}&skip=0&limit=10</code>
       <ul>
         <li><strong>otherId</strong>: target user's ID you want to chat with</li>
       </ul>

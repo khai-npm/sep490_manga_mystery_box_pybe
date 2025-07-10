@@ -21,11 +21,16 @@ async def action_create_conversation(user_1 : str, user_2 : str):
             Conversations.participant_2== str(target_user_2.id)
         )
 
+        if is_current_session:
+            return str(is_current_session.id)
+
         is_current_session_2 = await Conversations.find_one(
             Conversations.participant_1== str(target_user_2.id),
             Conversations.participant_2== str(target_user_1.id)
         )
 
+        if is_current_session_2:
+            return str(is_current_session_2.id)
 
 
         if not is_current_session and not is_current_session_2:
@@ -36,8 +41,9 @@ async def action_create_conversation(user_1 : str, user_2 : str):
                 created_by=str(target_user_1.id)
             )
 
-            return await new_conversation.insert() 
-        
+            await new_conversation.insert() 
+            return str(new_conversation.id)
+
         else:
             raise HTTPException(status_code=403, detail="chatroom already created!")
 
@@ -53,7 +59,7 @@ async def action_get_all_messages_from_conversation(
         current_user : str, 
         id : str,
         skip: int = 0,
-        limit: int = 10):
+        limit: int = 30):
 
     try:
         get_user = await User.find_one(User.username==current_user)
@@ -62,7 +68,9 @@ async def action_get_all_messages_from_conversation(
             raise HTTPException(status_code=404, detail="chat room not found!")
         
         if get_cons.participant_1 == str(get_user.id) or get_cons.participant_2 == str(get_user.id):
-            return BodyResponseSchema(data= [await Messages.find(Messages.conversation_id==id).skip(skip).limit(limit).to_list()],
+            messages_info = await Messages.find(Messages.conversation_id==id).sort("-created_at").skip(skip).limit(limit).to_list()
+
+            return BodyResponseSchema(data= [reversed(messages_info)],
                                       length=await Messages.find(Messages.conversation_id==id).count())
         
         raise HTTPException(status_code=403, detail="You are not a participant in this conversation.")
