@@ -8,7 +8,6 @@ class AuctionSession(Document):
     descripition : str
     start_time : datetime
     end_time : datetime
-    starting_price : float
     seller_id : str
     status : int
 

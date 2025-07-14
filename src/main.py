@@ -5,6 +5,7 @@ from src.events.startup import events as startup_event
 from src.routers.User.view import User_router
 from src.routers.Admin.views import admin_router
 from src.routers.Chatbox.views import chatbox_router
+from src.routers.Auction.views import Auction
 from src.routers.websocket.chatbox.views import websocket_chatbox
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -45,7 +46,9 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
 app.include_router(User_router)
 app.include_router(admin_router)
 app.include_router(chatbox_router)
+app.include_router(Auction)
 app.include_router(websocket_chatbox)
+
 
 
 def entry_page_html():
