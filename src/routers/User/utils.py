@@ -81,10 +81,10 @@ async def action_user_register(request_data : RegisterFormSchema):
             raise HTTPException(detail="username only able for containing letter, number and underscore")
 
         if await User.find_one(User.username == request_data.username):
-            raise HTTPException(detail="username already exist", status_code=400)
+            raise HTTPException(detail="username already exist !", status_code=400)
         
         if await User.find_one(User.email == request_data.email) is not None:
-            raise Exception("registered email")
+            raise Exception("Email aready in use !")
         
         if check_password(request_data.password) is False:
             raise Exception("Password must be at least 8 characters, include uppercase, lowercase, number, and special character.")
