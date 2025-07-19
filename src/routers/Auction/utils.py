@@ -57,6 +57,7 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
                                              status=0,
                                              user_product_id=str(user_product.id))
         
+        await user_product.set({User_Product.Quantity : user_product.Quantity-request_data.quantity})
         await new_auction_product.insert()
         
         
@@ -98,3 +99,20 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
     
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_user_product_db(current_user : str):
+    try:
+        db_user = await User.find_one(User.username == current_user)
+        if not db_user:
+            raise HTTPException(detail="user not found !", status_code=404)
+        
+        user_product_list = await User_Product.find(User_Product.CollectorId==str(db_user.id)).to_list()
+
+        return user_product_list
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+        
