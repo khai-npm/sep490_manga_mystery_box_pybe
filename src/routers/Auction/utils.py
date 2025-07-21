@@ -6,6 +6,7 @@ from src.models.AuctionProduct import AuctionProduct
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
+from bson import ObjectId
 
 async def action_get_all_auction_list_user_side(current_user : str):
     try:
@@ -45,6 +46,7 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
         if not user_product:
             raise HTTPException(detail="product user not found", status_code=404)
     
+
         
         if user_product.Quantity - request_data.quantity < 0:
             raise HTTPException(detail="quantity not valid", status_code=400)
@@ -52,7 +54,14 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
         if request_data.starting_price < 0 :
             raise HTTPException(detail="price not valid", status_code=400)
         
-        new_auction_product = AuctionProduct(auction_session_id="",
+        if not await AuctionSession.find_one(AuctionSession.id == ObjectId(request_data.auction_session_id)):
+            raise HTTPException(detail="auction not found !", status_code=404)
+        
+        exist_product = await AuctionProduct.find_one(AuctionProduct.user_product_id == str(user_product.id))
+        if exist_product:
+            raise HTTPException(detail="product already exist !", status_code=400)
+        
+        new_auction_product = AuctionProduct(auction_session_id=request_data.auction_session_id,
                                              quantity= request_data.quantity,
                                              seller_id=str(user.id),
                                              starting_price=request_data.starting_price,
