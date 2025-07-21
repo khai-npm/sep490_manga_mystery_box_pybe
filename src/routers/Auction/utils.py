@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from src.models.User import User
 from src.models.AuctionSession import AuctionSession
 from src.models.User_Product import User_Product
@@ -40,17 +40,19 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
         user = await User.find_one(User.username == current_user)
         if not user:
             raise HTTPException(detail="user not found", status_code=404)
-        user_product = await User_Product.find_one(User_Product.ProductId == request_data.product_id)
+        user_product = await User_Product.find_one(User_Product.ProductId == request_data.product_id,
+                                                   User_Product.CollectorId==str(user.id))
         if not user_product:
             raise HTTPException(detail="product user not found", status_code=404)
+    
         
         if user_product.Quantity - request_data.quantity < 0:
             raise HTTPException(detail="quantity not valid", status_code=400)
         
         if request_data.starting_price < 0 :
-            raise HTTPException(detail="price not vlaid", status_code=400)
+            raise HTTPException(detail="price not valid", status_code=400)
         
-        new_auction_product = AuctionProduct(auction_session_id=None,
+        new_auction_product = AuctionProduct(auction_session_id="",
                                              quantity= request_data.quantity,
                                              seller_id=str(user.id),
                                              starting_price=request_data.starting_price,
@@ -76,7 +78,12 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
         if not user:
             raise HTTPException(detail="user not found", status_code=404)
         
-        if request_data.start_time < datetime.now()+timedelta(hours=4):
+        if await AuctionSession.find(AuctionSession.seller_id == str(user.id),
+                                     AuctionSession.status==0).count() != 0:
+            raise HTTPException(detail="training option has been restricted !", status_code=400)
+        
+        utc_vn = datetime.now(timezone(timedelta(hours=7)))
+        if request_data.start_time < utc_vn +timedelta(hours=4):
             raise HTTPException(detail="start time must be above 4 hours from now", status_code=400)
         
         if request_data.end_time < request_data.start_time:
