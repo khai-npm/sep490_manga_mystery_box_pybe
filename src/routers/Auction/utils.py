@@ -151,6 +151,10 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
             
             raise HTTPException(status_code=400, detail="already joined !")
         
+        
+        if auction_db.start_time < datetime.now():
+        
+            raise HTTPException(status_code=403, detail="auction session already started !")
 
         join_info = AuctionParticipant(auction_id=auction_id,
                                        user_id=str(user_db.id))
