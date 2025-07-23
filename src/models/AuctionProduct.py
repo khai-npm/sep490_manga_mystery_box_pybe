@@ -9,6 +9,7 @@ class AuctionProduct(Document):
     seller_id : str
     quantity : int
     starting_price : float
+    current_price : float
     status : int
 
     class Settings:

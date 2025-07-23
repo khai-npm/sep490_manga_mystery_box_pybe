@@ -21,6 +21,7 @@ async def event_01_init_db():
     from src.models.AuctionProduct import AuctionProduct
     from src.models.User_Product import User_Product
     from src.models.Bids import Bids
+    from src.models.AuctionParticipant import AuctionParticipant
     from motor.motor_asyncio import AsyncIOMotorClient
     from src.database.get_db_instance import connection_string
 
@@ -42,7 +43,8 @@ async def event_01_init_db():
                                                              AuctionWinner,
                                                              Bids,
                                                              AuctionProduct,
-                                                             User_Product]
+                                                             User_Product,
+                                                             AuctionParticipant]
     )
 
     if await Permission.count() == 0:

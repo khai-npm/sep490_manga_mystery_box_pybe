@@ -3,11 +3,8 @@ from datetime import datetime
 from fastapi import Form
 from pydantic import BaseModel
 
-class Bids(Document):
+class AuctionParticipant(Document):
     auction_id : str
-    bidder_id : str
-    bid_amount : float
-    bid_time : datetime
-
+    user_id : str
     class Settings:
-        name = "Bids"
+        name = "AuctionParticipant"

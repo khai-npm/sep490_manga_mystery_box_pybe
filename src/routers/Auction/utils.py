@@ -3,6 +3,7 @@ from src.models.User import User
 from src.models.AuctionSession import AuctionSession
 from src.models.User_Product import User_Product
 from src.models.AuctionProduct import AuctionProduct
+from src.models.AuctionParticipant import AuctionParticipant
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
@@ -65,6 +66,7 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
                                              quantity= request_data.quantity,
                                              seller_id=str(user.id),
                                              starting_price=request_data.starting_price,
+                                             current_price=request_data.starting_price,
                                              status=0,
                                              user_product_id=str(user_product.id))
         
@@ -132,3 +134,34 @@ async def action_get_user_product_db(current_user : str):
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
         
+
+async def action_join_a_auction(auction_id : str, current_user_name : str):
+    try:
+        user_db = await User.find_one(User.username == current_user_name)
+        if not user_db :
+            raise HTTPException(status_code=404, detail="user not found !")
+        
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+
+        if not auction_db:
+            raise HTTPException(status_code=404, detail="auction not valid !")
+        
+        if await AuctionParticipant.find_one(AuctionParticipant.user_id== str(user_db.id),
+                                             AuctionParticipant.auction_id== auction_id) is not None:
+            
+            raise HTTPException(status_code=400, detail="already joined !")
+        
+
+        join_info = AuctionParticipant(auction_id=auction_id,
+                                       user_id=str(user_db.id))
+        
+        return await join_info.insert()
+        
+        
+            
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail= str(e))
