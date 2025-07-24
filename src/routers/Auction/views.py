@@ -12,7 +12,8 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_create_auction_product,
                                        action_create_new_auction_session,
                                        action_get_user_product_db,
-                                       action_join_a_auction)
+                                       action_join_a_auction,
+                                       leave_join_a_auction)
 from src.models.User import User
 from dotenv import load_dotenv
 import os
@@ -44,3 +45,8 @@ async def create_new_auction_session(request_data : AddAuctionSessionSchema ,cur
 @Auction.post("/join", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def join_a_auction(auction_id : str, current_user :str = Depends(get_current_user)):
     return {"data" : [await action_join_a_auction(auction_id, current_user)]}
+
+@Auction.post("/leave", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def leave_a_auction(auction_id : str, current_user :str = Depends(get_current_user)):
+    return {"data" : [await leave_join_a_auction(auction_id, current_user)]}
+

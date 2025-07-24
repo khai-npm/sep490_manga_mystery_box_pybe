@@ -161,11 +161,30 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
         
         return await join_info.insert()
         
-        
-            
-
     except HTTPException as http_e:
         raise http_e
     
     except Exception as e:
         raise HTTPException(status_code=400, detail= str(e))
+    
+async def leave_join_a_auction(auction_id : str, current_user_name : str):
+    try:
+        user_db = await User.find_one(User.username == current_user_name)
+        if not user_db :
+            raise HTTPException(status_code=404, detail="user not found !")
+        
+        auction_participant = await AuctionParticipant.find_one(AuctionParticipant.user_id== str(user_db.id),
+                                             AuctionParticipant.auction_id== auction_id)
+        
+        if not auction_participant:
+            raise HTTPException(status_code=404, detail="user not found !")
+        
+        return await auction_participant.delete()
+
+
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
