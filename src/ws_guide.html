@@ -76,13 +76,13 @@
     <div class="sub-section">
       <h3>📥 How to get conversationId</h3>
       <p>Call this API using user_id to get a conservation room id : :</p>
-      <code>POST /api/chatbox/conversation/{user_id}</code>
+      <code>POST /py/api/chatbox/conversation/{user_id}</code>
     </div>
 
     <div class="sub-section">
       <h3>🗂 Load chat history before connecting</h3>
       <p>Before connecting to the WebSocket, get the conversation history with a specific roomid:</p>
-      <code>GET /api/chatbox/messages?id=${conversationId}&skip=0&limit=10</code>
+      <code>GET /py/api/chatbox/messages?id=${conversationId}&skip=0&limit=10</code>
       <ul>
         <li><strong>otherId</strong>: target user's ID you want to chat with</li>
       </ul>
