@@ -4,10 +4,12 @@ from src.models.AuctionSession import AuctionSession
 from src.models.User_Product import User_Product
 from src.models.AuctionProduct import AuctionProduct
 from src.models.AuctionParticipant import AuctionParticipant
+from src.models.Bids import Bids
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
 from bson import ObjectId
+from src.models.DigitalWallet import DigitalWallet
 
 async def action_get_all_auction_list_user_side(current_user : str):
     try:
@@ -167,7 +169,7 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
     except Exception as e:
         raise HTTPException(status_code=400, detail= str(e))
     
-async def leave_join_a_auction(auction_id : str, current_user_name : str):
+async def leave_a_auction(auction_id : str, current_user_name : str):
     try:
         user_db = await User.find_one(User.username == current_user_name)
         if not user_db :
@@ -186,5 +188,59 @@ async def leave_join_a_auction(auction_id : str, current_user_name : str):
     except HTTPException as http_e:
         raise http_e
     
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_add_bid_auction(auction_id : str, ammount : float, current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found !")
+        
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if not auction_db:
+            raise HTTPException(status_code=404, detail="auction not found")
+        
+        user_wallet = await DigitalWallet.find_one(DigitalWallet.id == ObjectId(user_db.wallet_id))
+        if not user_wallet:
+            raise HTTPException(status_code=403, detail="wallet not registered !")
+        
+        if ammount > user_wallet.ammount:
+            raise HTTPException(status_code=403, detail="insuffient ammount !")
+        
+        if auction_db.start_time > datetime.now() or datetime.now() > auction_db.end_time:
+            raise HTTPException(status_code=403, detail="auction session closed or not open yet!")
+        
+        product_auction = await AuctionProduct.find_one(AuctionProduct.auction_session_id == auction_id)
+        if not product_auction:
+            raise HTTPException(status_code=403, detail="product info not found !")
+        
+        # all_bids_in_session = await Bids.find(Bids.auction_id == (auction_db.id)).sort(-Bids.bid_amount).to_list()
+        # highest_bids_in_session = all_bids_in_session[0]
+        highest_bids_in_session = await Bids.find(Bids.auction_id == (auction_db.id)).sort(-Bids.bid_amount,).first_or_none()
+
+        if not highest_bids_in_session:
+            return await Bids(auction_id=str(auction_db.id),
+                              bid_amount=ammount,
+                              bidder_id=str(user_db.id),
+                              bid_time=datetime.now()).insert()
+
+
+
+        if ammount <= highest_bids_in_session.bid_amount + ((product_auction.starting_price * 5)/100):
+            raise HTTPException(status_code=403, detail="bid ammount invalid")
+        
+        else:
+            return await Bids(auction_id=str(auction_db.id),
+                              bid_amount=ammount,
+                              bidder_id=str(user_db.id),
+                              bid_time=datetime.now()).insert()
+        
+
+        
+
+    
+    except HTTPException as http_e:
+        raise http_e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
