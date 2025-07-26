@@ -47,7 +47,7 @@ async def create_new_auction_session(request_data : AddAuctionSessionSchema ,cur
 async def join_a_auction(auction_id : str, current_user :str = Depends(get_current_user)):
     return {"data" : [await action_join_a_auction(auction_id, current_user)]}
 
-@Auction.post("/leave", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+@Auction.delete("/leave", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def leave_a_auction(auction_id : str, current_user :str = Depends(get_current_user)):
     return {"data" : [await leave_a_auction(auction_id, current_user)]}
 
