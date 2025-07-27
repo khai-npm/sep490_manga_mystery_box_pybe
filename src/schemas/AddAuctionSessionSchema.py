@@ -7,4 +7,3 @@ class AddAuctionSessionSchema(BaseModel):
     title : str
     descripition : str
     start_time : datetime
-    end_time : datetime

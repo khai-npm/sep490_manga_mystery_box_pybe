@@ -10,6 +10,7 @@ from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
 from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
+from bson import Decimal128
 
 async def action_get_all_auction_list_user_side(current_user : str):
     try:
@@ -93,20 +94,17 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
         
         if await AuctionSession.find(AuctionSession.seller_id == str(user.id),
                                      AuctionSession.status==0).count() != 0:
-            raise HTTPException(detail="training option has been restricted !", status_code=400)
+            raise HTTPException(detail="multiple auction create has been restricted !", status_code=400)
         
         utc_vn = datetime.now(timezone(timedelta(hours=7)))
-        if request_data.start_time < utc_vn +timedelta(hours=4):
-            raise HTTPException(detail="start time must be above 4 hours from now", status_code=400)
-        
-        if request_data.end_time < request_data.start_time:
-            raise HTTPException(detail="invalid end time !", status_code=400)
+        if request_data.start_time < utc_vn +timedelta(hours=1):
+            raise HTTPException(detail="start time must be above 1 hours from now", status_code=403)
 
         if request_data.title == "":
             raise HTTPException(detail="title not valid", status_code=400)         
 
         new_auction = AuctionSession(descripition=request_data.descripition,
-                                     end_time=request_data.end_time,
+                                     end_time=request_data.start_time + timedelta(hours=1),
                                      start_time=request_data.start_time,
                                      seller_id=str(user.id),
                                      title=request_data.title,
@@ -153,10 +151,18 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
             
             raise HTTPException(status_code=400, detail="already joined !")
         
+        if auction_db.seller_id == str(user_db.id):
+            raise HTTPException(status_code=403, detail="cannot join own auction session")
+        
         
         if auction_db.start_time < datetime.now():
         
             raise HTTPException(status_code=403, detail="auction session already started !")
+        
+        product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == auction_id)
+        if not product:
+            raise HTTPException(status_code=403, detail="no product included ! cannot join in")
+        
 
         join_info = AuctionParticipant(auction_id=auction_id,
                                        user_id=str(user_db.id))
@@ -215,22 +221,28 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
         if not product_auction:
             raise HTTPException(status_code=403, detail="product info not found !")
         
+        if product_auction.starting_price > ammount:
+            raise HTTPException(status_code=403, detail="bidding ammount is less than product's starting price")
+        
         # all_bids_in_session = await Bids.find(Bids.auction_id == (auction_db.id)).sort(-Bids.bid_amount).to_list()
         # highest_bids_in_session = all_bids_in_session[0]
-        highest_bids_in_session = await Bids.find(Bids.auction_id == (auction_db.id)).sort(-Bids.bid_amount,).first_or_none()
+        highest_bids_in_session = await Bids.find(Bids.auction_id == str(auction_db.id)).sort(-Bids.bid_amount,).first_or_none()
+        print(highest_bids_in_session)
 
         if not highest_bids_in_session:
+            # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})
+            await product_auction.set({AuctionProduct.current_price : ammount})
             return await Bids(auction_id=str(auction_db.id),
                               bid_amount=ammount,
                               bidder_id=str(user_db.id),
                               bid_time=datetime.now()).insert()
 
-
-
         if ammount <= highest_bids_in_session.bid_amount + ((product_auction.starting_price * 5)/100):
             raise HTTPException(status_code=403, detail="bid ammount invalid")
         
         else:
+            # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})
+            await product_auction.set({AuctionProduct.current_price : ammount})
             return await Bids(auction_id=str(auction_db.id),
                               bid_amount=ammount,
                               bidder_id=str(user_db.id),

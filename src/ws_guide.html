@@ -97,7 +97,7 @@
       var hostname = window.location.hostname;
       var urlEl = document.getElementById("ws-url");
       if (urlEl) {
-        urlEl.textContent = "wss://" + hostname + "/websocket/chatbox/${conversationId}/${myId}?token=${token}";
+        urlEl.textContent = "wss://" + hostname + "/py/websocket/chatbox/${conversationId}/${myId}?token=${token}";
       }
     });
   </script>
