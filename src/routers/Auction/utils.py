@@ -247,12 +247,44 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
                               bid_amount=ammount,
                               bidder_id=str(user_db.id),
                               bid_time=datetime.now()).insert()
-        
-
-        
-
-    
+            
     except HTTPException as http_e:
         raise http_e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_total_result_ended_auction(auction_id : str, current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+
+        if not auction_db:
+            raise HTTPException(status_code=404, detail="auction session not found")
+        
+        if str(user_db.id) != auction_db.seller_id:
+            raise HTTPException(status_code=403, detail="requested user is not owner of auction !.")
+        
+        if datetime.now() < auction_db.end_time :
+            raise HTTPException(status_code=403, detail="auction session not yet ended !")
+        
+        highest_bids_in_session = await Bids.find(Bids.auction_id == auction_id).sort(-Bids.bid_amount,).first_or_none()
+        if not highest_bids_in_session:
+            raise HTTPException(status_code=404, detail="not found highest BID")
+        
+        winner = Bids(auction_id=auction_id,
+                      bidder_id=highest_bids_in_session.bidder_id,
+                      bid_amount=highest_bids_in_session.bid_amount,
+                      bid_time=highest_bids_in_session.bid_time)
+        
+        return await winner.insert()
+        
+
+
+    except HTTPException as http_e:
+        raise http_e
+    
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

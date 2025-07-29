@@ -17,7 +17,7 @@ async def websocket_util_verify_user(websocket : WebSocket, user_id : str, conse
         if curent_token_user.id != ObjectId(user_id):
             raise Exception
         
-        current_conservation = await Conversations.find_one(
+        current_conservation = await Conversations.find_one( 
             Conversations.id == ObjectId(conservation_id)
         )
 
