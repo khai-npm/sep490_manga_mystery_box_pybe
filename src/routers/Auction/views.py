@@ -16,6 +16,7 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        leave_a_auction,
                                        action_add_bid_auction,
                                        action_total_result_ended_auction)
+from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
 import os
@@ -54,7 +55,15 @@ async def leave_a_auction(auction_id : str, current_user :str = Depends(get_curr
 
 @Auction.post("/bid", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def add_bid_auction(auction_id : str, ammount : float , current_user :str = Depends(get_current_user)):
-    return {"data" : [await action_add_bid_auction(auction_id, ammount, current_user)]}
+    result = await action_add_bid_auction(auction_id, ammount, current_user)
+    result_json = {
+        "auction_id" : str(result.auction_id),
+        "bid_amount" : str(result.bid_amount),
+        "bid_time" : str(result.bid_time),
+        "bidder_id" : str(result.bidder_id)
+    }
+    await broadcast(result_json, auction_id)
+    return {"data" : [result]}
 
 @Auction.post("/confirmation", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def total_result_ended_auction(auction_id : str, current_user : str = Depends(get_current_user)):
