@@ -5,6 +5,7 @@ from src.models.User_Product import User_Product
 from src.models.AuctionProduct import AuctionProduct
 from src.models.AuctionParticipant import AuctionParticipant
 from src.models.Bids import Bids
+from src.models.AuctionWinner import AuctionWinner
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
@@ -274,10 +275,10 @@ async def action_total_result_ended_auction(auction_id : str, current_user : str
         if not highest_bids_in_session:
             raise HTTPException(status_code=404, detail="not found highest BID")
         
-        winner = Bids(auction_id=auction_id,
-                      bidder_id=highest_bids_in_session.bidder_id,
+        winner = AuctionWinner(auction_id=auction_id,
+                      winner_id=highest_bids_in_session.bidder_id,
                       bid_amount=highest_bids_in_session.bid_amount,
-                      bid_time=highest_bids_in_session.bid_time)
+                      winning_time=highest_bids_in_session.bid_time)
         
         return await winner.insert()
         
