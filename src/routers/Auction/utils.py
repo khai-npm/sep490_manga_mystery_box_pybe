@@ -258,6 +258,9 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
 
 async def action_total_result_ended_auction(auction_id : str, current_user : str):
     try:
+        if await AuctionResult.find_one(AuctionResult.auction_id==auction_id):
+            raise HTTPException(status_code=403, detail="auction already confirmed !")
+
         user_db = await User.find_one(User.username == current_user)
         if not user_db:
             raise HTTPException(status_code=404, detail="user not found")
