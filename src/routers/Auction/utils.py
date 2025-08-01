@@ -6,13 +6,14 @@ from src.models.AuctionProduct import AuctionProduct
 from src.models.AuctionParticipant import AuctionParticipant
 from src.models.Bids import Bids
 from src.models.AuctionWinner import AuctionWinner
+from src.models.AuctionResult import AuctionResult
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
 from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
 from bson import Decimal128
-
+from decimal import Decimal
 async def action_get_all_auction_list_user_side(current_user : str):
     try:
         user_db = await User.find_one(User.username==current_user)
@@ -72,7 +73,7 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
                                              starting_price=request_data.starting_price,
                                              current_price=request_data.starting_price,
                                              status=0,
-                                             user_product_id=str(user_product.id))
+                                             user_product_id=user_product.ProductId)
         
         await user_product.set({User_Product.Quantity : user_product.Quantity-request_data.quantity})
         await new_auction_product.insert()
@@ -275,14 +276,25 @@ async def action_total_result_ended_auction(auction_id : str, current_user : str
         if not highest_bids_in_session:
             raise HTTPException(status_code=404, detail="not found highest BID")
         
-        winner = AuctionWinner(auction_id=auction_id,
-                      winner_id=highest_bids_in_session.bidder_id,
-                      bid_amount=highest_bids_in_session.bid_amount,
-                      winning_time=highest_bids_in_session.bid_time)
-        
-        return await winner.insert()
-        
+        auction_product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(auction_db.id))
 
+        if not auction_product:
+            raise HTTPException(status_code=403, detail="product data conflicted !")
+        
+        winner = await User.find_one(User.id == ObjectId(highest_bids_in_session.bidder_id))
+        hoster_id = auction_db.seller_id
+        result = AuctionResult(auction_id=auction_id,
+                               product_id=auction_product.user_product_id,
+                               quantity=auction_product.quantity,
+                               bidder_amount=Decimal(highest_bids_in_session.bid_amount),
+                               bidder_id=str(winner.id),
+                               hoster_id=hoster_id,
+                               host_claim_amount=Decimal(highest_bids_in_session.bid_amount-((highest_bids_in_session.bid_amount*5)/100)),
+                               is_solved=False
+                               )
+        
+        
+        return await result.insert()
 
     except HTTPException as http_e:
         raise http_e
