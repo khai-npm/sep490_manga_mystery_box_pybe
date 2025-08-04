@@ -113,5 +113,31 @@ async def action_get_username_by_id(id : str):
         raise HTTPException(detail=str(e), status_code=400)
 
     
+async def action_get_list_chat(current_user : str):
+    
+    try:
+        my_user = await User.find_one(User.username == current_user)
+        if not my_user:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        my_user_id = str(my_user.id)
 
+        userid_list = []
+        conservation_list_1 = await Conversations.find(Conversations.participant_1 == my_user_id).to_list()
+        for a in conservation_list_1:
+            if a.participant_2 not in userid_list:
+                userid_list.append(a.participant_2)
+
+        conservation_list_2 = await Conversations.find(Conversations.participant_2 == my_user_id).to_list()
+        for b in conservation_list_2:
+            if b.participant_1 not in userid_list:
+                userid_list.append(b.participant_1)
+
+
+        return userid_list
+    except HTTPException as http_e :
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
