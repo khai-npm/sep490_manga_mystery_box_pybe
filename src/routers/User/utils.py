@@ -289,7 +289,7 @@ async def action_send_recovery_email(data : str):
         new_verify_session = PendingRecoveryVerification(
         email=data,
         code=hash_password_util.HashPassword(code),
-        expire_time=datetime.now() + timedelta(minutes=5),
+        expire_time=datetime.now() + timedelta(minutes=10),
         wrong_code_count=0
         )
 

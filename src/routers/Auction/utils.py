@@ -304,3 +304,48 @@ async def action_total_result_ended_auction(auction_id : str, current_user : str
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_is_joined_auction(current_user : str):
+    try:
+
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+
+        joined_auction = await AuctionParticipant.find(AuctionParticipant.user_id==str(user_db.id)).to_list()
+        for auction in joined_auction:
+            session = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction.auction_id))
+            if session.start_time < datetime.now() < session.end_time:
+                return True
+            
+        return False
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+
+async def action_get_joined_history_auction(current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+        auction_list = []
+        particited_auction = await AuctionParticipant.find(AuctionParticipant.user_id==str(user_db.id)).to_list()
+        for each in particited_auction:
+            auction = await AuctionSession.find_one(AuctionSession.id == ObjectId(each.auction_id))
+            if auction.end_time < datetime.now():
+                auction_list.append(auction)
+
+        return auction_list
+
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

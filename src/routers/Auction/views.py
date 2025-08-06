@@ -15,7 +15,9 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_join_a_auction,
                                        leave_a_auction,
                                        action_add_bid_auction,
-                                       action_total_result_ended_auction)
+                                       action_total_result_ended_auction,
+                                       action_is_joined_auction,
+                                       action_get_joined_history_auction)
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -68,3 +70,11 @@ async def add_bid_auction(auction_id : str, ammount : float , current_user :str 
 @Auction.post("/confirmation", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def total_result_ended_auction(auction_id : str, current_user : str = Depends(get_current_user)):
     return {"data" : [await action_total_result_ended_auction(auction_id, current_user)]}
+
+@Auction.get("/is-joined-auction", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def is_joined_auction(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_is_joined_auction(current_user)]}
+
+@Auction.get("/joined-history", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_joined_history_auction(current_user : str = Depends(get_current_user)):
+    return {"data" : await action_get_joined_history_auction(current_user)}
