@@ -3,10 +3,11 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from src.libs.jwt_authenication_handler import jwt_validator
 from src.routers.websocket.chatbox.connection_manager import connect, disconnect, broadcast
-from src.routers.websocket.chatbox.utils import websocket_util_verify_user
+from src.routers.websocket.chatbox.utils import websocket_util_verify_user, get_target_user_id
 from src.models.User import User
 from src.models.Conversations import Conversations
 from src.models.Messages import Messages
+from src.routers.websocket.chat_notification.connection_manager import broadcast as notifi_broadcast
 import json
 
 websocket_chatbox = APIRouter(prefix="/websocket", tags=["Websocket Chatbox"])
@@ -14,6 +15,7 @@ websocket_chatbox = APIRouter(prefix="/websocket", tags=["Websocket Chatbox"])
 async def websocket_endpoint(websocket: WebSocket, conversation_id: str, user_id: str):
     if await websocket_util_verify_user(websocket, user_id, conversation_id) is False:
         return
+    target_user_id = await get_target_user_id(user_id, conversation_id)
     await connect(websocket, conversation_id)
     try:
         while True:
@@ -33,7 +35,13 @@ async def websocket_endpoint(websocket: WebSocket, conversation_id: str, user_id
                 "conversation_id" : message_data.conversation_id
 
             }
+
             await message_data.insert()
             await broadcast(message_data_json, conversation_id)
+            message_notification = {
+                "sender_id" : message_data.sender_id,
+                "sent_at" : str(datetime.now().strftime("%H:%M"))
+            }
+            await notifi_broadcast(message_notification, target_user_id)
     except WebSocketDisconnect:
         disconnect(websocket, conversation_id)

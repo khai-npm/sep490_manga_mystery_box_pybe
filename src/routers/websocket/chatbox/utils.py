@@ -34,3 +34,11 @@ async def websocket_util_verify_user(websocket : WebSocket, user_id : str, conse
         return False
 
     return True
+
+async def get_target_user_id(user_id : str, conversation_id : str):
+    current_conversation = await Conversations.find_one(Conversations.id == ObjectId(conversation_id))
+    print(current_conversation)
+    if current_conversation.participant_1 == user_id:
+        return current_conversation.participant_2
+    else: 
+        return current_conversation.participant_1

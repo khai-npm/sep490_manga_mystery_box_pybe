@@ -29,15 +29,15 @@ Auction = APIRouter(prefix="/api/auction", tags=["Auction"])
     
 @Auction.get("/all",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_all_auction_list_user_side(current_user :str = Depends(get_current_user)):
-    return {"data" : [await action_get_all_auction_list_user_side(current_user)]}
+    return {"data" : await action_get_all_auction_list_user_side(current_user)}
 
 @Auction.get("/me",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_all_auction_user_hosed_side(current_user :str = Depends(get_current_user)):
-    return {"data" : [await action_get_all_auction_user_hosed_side(current_user)]}
+    return {"data" : await action_get_all_auction_user_hosed_side(current_user)}
 
 @Auction.get("/user-product", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_user_product_db(current_user :str = Depends(get_current_user)):
-    return {"data" : [await action_get_user_product_db(current_user)]}
+    return {"data" : await action_get_user_product_db(current_user)}
 
 @Auction.post("/product", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def create_auction_product(data : AddAuctionProductSchema, current_user :str = Depends(get_current_user)):
