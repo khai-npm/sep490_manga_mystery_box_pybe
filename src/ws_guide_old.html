@@ -31,7 +31,7 @@
     }
     .ws-url {
       display: block;
-      font-size: 1.6em;
+      font-size: 1.6em; /* to hơn để nổi bật */
       font-weight: bold;
       background: #dcdde1;
       padding: 10px 14px;
@@ -60,11 +60,10 @@
 </head>
 <body>
   <h1>📡 WebSocket Portal Guide</h1>
-
   <div class="ws-section">
     <h2>🔌 Chatbox WebSocket</h2>
     <p>Use the following WebSocket URL to connect to chat conversations:</p>
-    <span class="ws-url" id="ws-url-chatbox">
+    <span class="ws-url" id="ws-url">
       wss://{hostname}/py/websocket/chatbox/${'{conversationId}'}/${'{myId}'}?token=${'{token}'}
     </span>
     <ul>
@@ -76,7 +75,7 @@
 
     <div class="sub-section">
       <h3>📥 How to get conversationId</h3>
-      <p>Call this API using user_id to get a conservation room id:</p>
+      <p>Call this API using user_id to get a conservation room id : :</p>
       <code>POST /py/api/chatbox/conversation/{user_id}</code>
     </div>
 
@@ -89,23 +88,6 @@
       </ul>
     </div>
   </div>
-
-  <div class="ws-section">
-    <h2>🔔 Chat Notification WebSocket</h2>
-    <p>Use the following WebSocket URL to receive real-time notifications for new chats:</p>
-    <span class="ws-url" id="ws-url-noti">
-      wss://{hostname}/py/websocket/chat-notification/${'{user_id}'}
-    </span>
-    <ul>
-      <li><strong>hostname</strong>: automatically filled with your current domain</li>
-      <li><strong>user_id</strong>: current user's ID logged into web</li>
-    </ul>
-    <div class="sub-section">
-      <h3>ℹ️ Description</h3>
-      <p>This WebSocket connection allows the client to listen for new chat notifications (e.g., new message in any conversation involving the user).</p>
-    </div>
-  </div>
-
   <footer>
     &copy; 2025 Manga Mystery Box. All rights reserved.
   </footer>
@@ -113,17 +95,12 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       var hostname = window.location.hostname;
-
-      var urlChatbox = document.getElementById("ws-url-chatbox");
-      if (urlChatbox) {
-        urlChatbox.textContent = "wss://" + hostname + "/py/websocket/chatbox/${conversationId}/${myId}?token=${token}";
-      }
-
-      var urlNoti = document.getElementById("ws-url-noti");
-      if (urlNoti) {
-        urlNoti.textContent = "wss://" + hostname + "/py/websocket/chat-notification/${user_id}";
+      var urlEl = document.getElementById("ws-url");
+      if (urlEl) {
+        urlEl.textContent = "wss://" + hostname + "/py/websocket/chatbox/${conversationId}/${myId}?token=${token}";
       }
     });
   </script>
 </body>
 </html>
+

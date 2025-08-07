@@ -27,6 +27,37 @@ async def action_get_all_auction_list_user_side(current_user : str):
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
     
+async def action_get_waiting_auction_list_user_side(current_user : str):
+    try:
+        user_db = await User.find_one(User.username==current_user)
+        if not user_db:
+            raise HTTPException(detail="user not found!", status_code=404)
+        
+        return await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status == 1,
+                                         AuctionSession.start_time > datetime.now()).to_list()
+    except HTTPException as http_exc:
+        raise http_exc
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_started_auction_list_user_side(current_user : str):
+    try:
+        user_db = await User.find_one(User.username==current_user)
+        if not user_db:
+            raise HTTPException(detail="user not found!", status_code=404)
+        
+        return await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status == 1,
+                                         AuctionSession.start_time <= datetime.now(),
+                                         AuctionSession.end_time > datetime.now()).to_list()
+    except HTTPException as http_exc:
+        raise http_exc
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    
 
 async def action_get_all_auction_user_hosed_side(current_user : str):
     try:
