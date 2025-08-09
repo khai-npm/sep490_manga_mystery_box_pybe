@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from src.models.Permission import Permission
 from src.models.Conversations import Conversations
 from src.models.Messages import Messages
+from src.models.PermissionRole import PermissionRole
 
 async def action_get_all_role():
     try:
@@ -49,8 +50,8 @@ async def action_add_new_role(role_name : str):
     
 async def action_get_all_permission():
     try:
-        all_per = Permission.find_all()
-        return all_per.to_list()
+        all_per = await Permission.find_all().to_list()
+        return all_per
 
     except HTTPException as http_e:
         raise http_e
@@ -74,3 +75,18 @@ async def action_delete_all_message_from_conservation(id : str):
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
 
+async def action_add_permission_role(role_name : str, permission_code : str):
+    try:
+        if (not await Role.find_one(Role.role_name == role_name) or
+            not await Permission.find_one(Permission.perrmission_code == permission_code)
+        ):
+            raise HTTPException(status_code=404, detail = "invalid role or persmission code")
+        
+        return await PermissionRole(role_name=role_name,
+                                    permission_code=permission_code).insert()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=400)

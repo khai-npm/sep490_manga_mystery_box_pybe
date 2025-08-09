@@ -14,6 +14,9 @@ from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
 from bson import Decimal128
 from decimal import Decimal
+from src.libs.permission_checker import Permission_checker
+from src.schemas.AuctionResponseSchema import AuctionResponseSchema
+
 async def action_get_all_auction_list_user_side(filter, current_user : str):
     try:
         if filter != "default" and filter != "started" and filter != "waiting":
@@ -30,7 +33,8 @@ async def action_get_all_auction_list_user_side(filter, current_user : str):
         if not user_db:
             raise HTTPException(detail="user not found!", status_code=404)
         
-        return await AuctionSession.find(AuctionSession.seller_id != str(user_db.id)).to_list()
+        return await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status==1).to_list()
     except HTTPException as http_exc:
         raise http_exc
     
@@ -388,5 +392,43 @@ async def action_get_joined_history_auction(current_user : str):
     except HTTPException as http_e:
         raise http_e
     
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_get_mod_auction_list_user_side(current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        if await Permission_checker(current_user, "action_view_all_auction") is False:
+            raise HTTPException(status_code=403, detail="access denied !")
+        
+        result = []
+
+        all_auction = await AuctionSession.find().to_list()
+        for each in all_auction:
+            host_user = await User.find_one(User.id == ObjectId(each.seller_id))
+            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each))
+            if product_db:
+                product_id = product_db.user_product_id
+                product_quantity = product_db.quantity
+            else:
+                product_id = ""
+                product_quantity = 0
+            data = AuctionResponseSchema(auction_id=str(each.id),
+                                         status=each.status,
+                                         host_username=host_user.username,
+                                         product_id=product_id,
+                                         quantity=product_quantity,
+                                         start_time=each.start_time,
+                                         end_time=each.end_time
+                                         )
+            
+            result.append(data)
+
+        return result
+    except HTTPException as http_e:
+        raise http_e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

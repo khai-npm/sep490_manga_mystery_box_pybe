@@ -19,7 +19,8 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_is_joined_auction,
                                        action_get_joined_history_auction,
                                        action_get_waiting_auction_list_user_side,
-                                       action_get_started_auction_list_user_side)
+                                       action_get_started_auction_list_user_side,
+                                       action_get_mod_auction_list_user_side)
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -33,9 +34,9 @@ Auction = APIRouter(prefix="/api/auction", tags=["Auction"])
 async def get_all_auction_list_user_side(filter : Optional[str] = Query("default"), current_user :str = Depends(get_current_user)):
     return {"data" : await action_get_all_auction_list_user_side(filter, current_user)}
 
-# @Auction.get("/waiting",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
-# async def get_waiting_auction_list_user_side(current_user :str = Depends(get_current_user)):
-#     return {"data" : await action_get_waiting_auction_list_user_side(current_user)}
+@Auction.get("/mod",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_mod_auction_list_user_side(current_user :str = Depends(get_current_user)):
+    return {"data" : await action_get_mod_auction_list_user_side(current_user)}
 
 # @Auction.get("/started",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 # async def get_started_auction_list_user_side(current_user :str = Depends(get_current_user)):

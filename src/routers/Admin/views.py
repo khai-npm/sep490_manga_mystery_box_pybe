@@ -11,7 +11,8 @@ from src.routers.Admin.utils import (action_change_permission_code_description,
                                      action_get_role_infomation_by_name,
                                      action_add_new_role,
                                      action_get_all_permission,
-                                     action_delete_all_message_from_conservation)
+                                     action_delete_all_message_from_conservation,
+                                     action_add_permission_role)
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
 # from src.lib.jwt_authenication_handler import get_current_user, jwt_validator
@@ -49,6 +50,10 @@ async def get_all_role(api_key: str = Depends(get_api_key)):
 async def get_role_infomation_by_name(role_name : str, api_key: str = Depends(get_api_key)):
     return {"data" : [await action_get_role_infomation_by_name(role_name)]}
 
+@admin_router.post("/permission-role", response_model=BodyResponseSchema)
+async def add_permission_role(role_name : str, permission_code : str, api_key: str = Depends(get_api_key)):
+    return {"data" : [await action_add_permission_role(role_name, permission_code)]}
+
 @admin_router.post("/role", response_model=BodyResponseSchema)
 async def add_new_role(role_name: str, api_key: str = Depends(get_api_key)):
     return {"data" : [await action_add_new_role(role_name)]}
@@ -60,7 +65,7 @@ async def update_role_name(role_id : str, new_role_name : str, api_key: str = De
 
 @admin_router.get("/permission", response_model=BodyResponseSchema)
 async def get_all_permission(api_key: str = Depends(get_api_key)):
-    return {"data" : [await action_get_all_permission()]}
+    return {"data" : await action_get_all_permission()}
 
 @admin_router.patch("/permission/{permission_code}", response_model=BodyResponseSchema)
 async def change_permisison_description(permission_code : str, desc : str ,api_key: str = Depends(get_api_key)):
