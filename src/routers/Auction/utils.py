@@ -14,8 +14,18 @@ from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
 from bson import Decimal128
 from decimal import Decimal
-async def action_get_all_auction_list_user_side(current_user : str):
+async def action_get_all_auction_list_user_side(filter, current_user : str):
     try:
+        if filter != "default" and filter != "started" and filter != "waiting":
+            raise HTTPException(status_code=400, detail="filter param not valid ! [default / started / waiting]")
+        
+        if filter == "waiting":
+            return await action_get_waiting_auction_list_user_side(current_user)
+        
+        if filter == "started":
+            return await action_get_started_auction_list_user_side(current_user)
+
+
         user_db = await User.find_one(User.username==current_user)
         if not user_db:
             raise HTTPException(detail="user not found!", status_code=404)
