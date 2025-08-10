@@ -4,6 +4,15 @@ from src.models.Permission import Permission
 from src.models.Conversations import Conversations
 from src.models.Messages import Messages
 from src.models.PermissionRole import PermissionRole
+from src.models.User import User
+from src.libs.permission_checker import Permission_checker
+from src.schemas.ModUserSchema import ModUserSchema
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+MASTER_EMAIL = os.getenv("MASTER_EMAIL")
+MASTER_API_KEY = os.getenv("MASTER_API_KEY")
 
 async def action_get_all_role():
     try:
@@ -38,6 +47,8 @@ async def action_get_role_infomation_by_name(role_name : str):
     
 async def action_add_new_role(role_name : str):
     try:
+        if await Role.find_one(Role.role_name=="role name"):
+            raise HTTPException(status_code=403, detail="role_name existed !")
 
         new_role = Role(role_name=role_name)
         await new_role.insert()
@@ -77,6 +88,10 @@ async def action_delete_all_message_from_conservation(id : str):
 
 async def action_add_permission_role(role_name : str, permission_code : str):
     try:
+        if await PermissionRole.find_one(PermissionRole.role_name==role_name,
+                                         PermissionRole.permission_code==permission_code):
+            raise HTTPException(status_code=403, detail= "PermissionRole Exist !")
+
         if (not await Role.find_one(Role.role_name == role_name) or
             not await Permission.find_one(Permission.perrmission_code == permission_code)
         ):
@@ -90,3 +105,31 @@ async def action_add_permission_role(role_name : str, permission_code : str):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=400)
+    
+
+async def action_get_all_moderator_list(current_user : str):
+    try:
+        if Permission_checker(current_user, "admin_view_moderator_list") is False:
+            raise HTTPException(status_code=403, detail="access denied")
+        
+        return await User.find(User.role_id == "mod").project(ModUserSchema).to_list()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_get_all_user_list(current_user : str):
+    try:
+        if Permission_checker(current_user, "admin_view_user_list") is False:
+            raise HTTPException(status_code=403, detail="access denied")
+        
+        return await User.find(User.role_id == "user").project(ModUserSchema).to_list()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

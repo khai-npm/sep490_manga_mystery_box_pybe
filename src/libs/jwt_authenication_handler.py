@@ -65,14 +65,12 @@ async def jwt_validator_admin(token: Annotated[str, Depends(oauth2_scheme)]):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])  
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         if payload['is_refresh_token'] is True:
+             print("this is refresh token")
              raise credentials_exception
-        if payload['role'] != 2:
+        if payload['role'] is not "admin":
              raise credentials_exception
-        # print(payload['status'])
-        # if payload['status'] is False:
-        #      raise credentials_exception
         username: str = payload.get("username")
         expire_time: float = payload.get("exp")
         if username is None or expire_time <= time.time():
@@ -80,6 +78,9 @@ async def jwt_validator_admin(token: Annotated[str, Depends(oauth2_scheme)]):
     except PyJWTError:
         raise credentials_exception
     user = await User.find_one({"username": username})
+
+    if user.is_email_verification == False :
+        raise credentials_exception
     if user is None:
         raise credentials_exception
 

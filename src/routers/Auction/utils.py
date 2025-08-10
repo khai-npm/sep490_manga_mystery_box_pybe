@@ -409,7 +409,7 @@ async def action_get_mod_auction_list_user_side(current_user : str):
         all_auction = await AuctionSession.find().to_list()
         for each in all_auction:
             host_user = await User.find_one(User.id == ObjectId(each.seller_id))
-            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each))
+            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
             if product_db:
                 product_id = product_db.user_product_id
                 product_quantity = product_db.quantity
