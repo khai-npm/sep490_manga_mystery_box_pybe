@@ -23,6 +23,8 @@ async def event_01_init_db():
     from src.models.Bids import Bids
     from src.models.AuctionParticipant import AuctionParticipant
     from src.models.AuctionResult import AuctionResult
+    from src.models.TransactionHistory import TransactionHistory
+    from src.models.TransactionFee import TransactionFee
     from motor.motor_asyncio import AsyncIOMotorClient
     from src.database.get_db_instance import connection_string
 
@@ -46,7 +48,9 @@ async def event_01_init_db():
                                                              AuctionProduct,
                                                              User_Product,
                                                              AuctionParticipant,
-                                                             AuctionResult]
+                                                             AuctionResult,
+                                                             TransactionHistory,
+                                                             TransactionFee]
     )
 
     if await Permission.count() == 0:
