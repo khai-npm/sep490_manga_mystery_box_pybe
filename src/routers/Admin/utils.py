@@ -9,6 +9,8 @@ from src.libs.permission_checker import Permission_checker
 from src.schemas.ModUserSchema import ModUserSchema
 from src.models.TransactionHistory import TransactionHistory
 from src.models.TransactionFee import TransactionFee
+from src.models.AuctionSession import AuctionSession
+from src.models.AuctionProduct import AuctionProduct
 from datetime import datetime, timedelta
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -291,3 +293,31 @@ async def action_get_total_revenue_fee(filter : str, current_user : str):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_approve_auction_session(auction_id: str, status : int, current_user : str):
+    try:
+        if await Permission_checker(current_user, "moderator_auction_management") is False:
+            raise HTTPException(status_code=403, detail="access denied")
+        
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_db))
+        if not auction_db:
+            raise HTTPException(detail="auction session not found !", status_code=404)
+        
+        product_auction = await AuctionProduct.find_one(AuctionProduct.auction_session_id == auction_id)
+        if not product_auction:
+            raise HTTPException(detail="no product auction session is not allowed", status_code=403)
+        
+        if auction_db.status != 0:
+            raise HTTPException(status_code=403, detail="this auction has been approved or denied")
+        
+        if status != 1 and status != -1:
+            raise HTTPException(status_code=400, detail="invalid status : 1 - approved, -1 : denied")
+        
+        return await auction_db.set({AuctionSession.status : status})
+
+
+    except HTTPException as http_e:
+        raise http_e
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)

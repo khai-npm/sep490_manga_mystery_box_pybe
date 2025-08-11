@@ -19,7 +19,8 @@ from src.routers.Admin.utils import (action_change_permission_code_description,
                                      action_demote_user_moderator,
                                      action_toggle_activation_user,
                                      action_get_total_trans_revenue,
-                                     action_get_total_revenue_fee
+                                     action_get_total_revenue_fee,
+                                     action_approve_auction_session
                                      )
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
@@ -119,3 +120,7 @@ async def get_total_trans_revenue(filter : Optional[str] = Query("all"), current
 @admin_router.get("/revenue-fee", dependencies=[Depends(jwt_validator)] ,response_model=BodyResponseSchema)
 async def get_total_revenue_fee(filter : Optional[str] = Query("all"), current_user : str = Depends(get_current_user)):
     return {"data" : [await action_get_total_revenue_fee(filter, current_user)]}
+
+@admin_router.patch("/auction/approval", dependencies=[Depends(jwt_validator)] ,response_model=BodyResponseSchema)
+async def approve_auction_session(auction_id : str, status : int,  current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_approve_auction_session(auction_id, status , current_user)]}
