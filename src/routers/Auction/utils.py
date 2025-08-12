@@ -203,9 +203,9 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
             raise HTTPException(status_code=403, detail="cannot join own auction session")
         
         
-        if auction_db.start_time < datetime.now():
+        # if auction_db.start_time < datetime.now():
         
-            raise HTTPException(status_code=403, detail="auction session already started !")
+        #     raise HTTPException(status_code=403, detail="auction session already started !")
         
         product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == auction_id)
         if not product:
@@ -223,7 +223,7 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
     except Exception as e:
         raise HTTPException(status_code=400, detail= str(e))
     
-async def leave_a_auction(auction_id : str, current_user_name : str):
+async def action_leave_a_auction(auction_id : str, current_user_name : str):
     try:
         user_db = await User.find_one(User.username == current_user_name)
         if not user_db :
@@ -452,4 +452,19 @@ async def action_get_auction_product(auction_id : str):
         raise http_e
     
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_get_bid_auction(auction_id : str):
+    try:
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if not auction_db:
+            raise HTTPException(detail="auction session not found", status_code=404)
+
+        return await Bids.find(Bids.auction_id==auction_id).to_list()        
+        
+    except HTTPException as http_e:
+        raise http_e
+    
+    except HTTPException as e:
         raise HTTPException(status_code=400, detail=str(e))

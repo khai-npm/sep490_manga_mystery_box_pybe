@@ -13,7 +13,7 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_create_new_auction_session,
                                        action_get_user_product_db,
                                        action_join_a_auction,
-                                       leave_a_auction,
+                                       action_leave_a_auction,
                                        action_add_bid_auction,
                                        action_total_result_ended_auction,
                                        action_is_joined_auction,
@@ -21,7 +21,8 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_get_waiting_auction_list_user_side,
                                        action_get_started_auction_list_user_side,
                                        action_get_mod_auction_list_user_side,
-                                       action_get_auction_product)
+                                       action_get_auction_product,
+                                       action_get_bid_auction)
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -69,7 +70,7 @@ async def join_a_auction(auction_id : str, current_user :str = Depends(get_curre
 
 @Auction.delete("/leave", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def leave_a_auction(auction_id : str, current_user :str = Depends(get_current_user)):
-    return {"data" : [await leave_a_auction(auction_id, current_user)]}
+    return {"data" : [await action_leave_a_auction(auction_id, current_user)]}
 
 @Auction.post("/bid", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def add_bid_auction(auction_id : str, ammount : float , current_user :str = Depends(get_current_user)):
@@ -82,6 +83,10 @@ async def add_bid_auction(auction_id : str, ammount : float , current_user :str 
     }
     await broadcast(result_json, auction_id)
     return {"data" : [result]}
+
+@Auction.get("/bid", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_bid_auction(auction_id : str):
+    return {"data" : await action_get_bid_auction(auction_id)}
 
 @Auction.post("/confirmation", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def total_result_ended_auction(auction_id : str, current_user : str = Depends(get_current_user)):
