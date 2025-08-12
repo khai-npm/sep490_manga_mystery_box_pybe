@@ -7,8 +7,8 @@ websocket_auction = APIRouter(prefix="/websocket/auction", tags=["Websocket Chat
 
 @websocket_auction.websocket("/{auction_id}")
 async def auction_websocket_endpoint(websocket: WebSocket, auction_id : str):
-    if await websocket_auction_util_verify_user(websocket, auction_id) is False:
-        return
+    # if await websocket_auction_util_verify_user(websocket, auction_id) is False:
+    #     return
     await connect(websocket, auction_id)
     try:
         while True:

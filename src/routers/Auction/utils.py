@@ -140,7 +140,8 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
             raise HTTPException(detail="user not found", status_code=404)
         
         if await AuctionSession.find(AuctionSession.seller_id == str(user.id),
-                                     AuctionSession.status==0).count() != 0:
+                                     AuctionSession.status==0,
+                                     AuctionSession.end_time < datetime.now()).count() != 0:
             raise HTTPException(detail="multiple auction create has been restricted !", status_code=400)
         
         utc_vn = datetime.now(timezone(timedelta(hours=7)))
@@ -430,5 +431,25 @@ async def action_get_mod_auction_list_user_side(current_user : str):
         return result
     except HTTPException as http_e:
         raise http_e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+async def action_get_auction_product(auction_id : str):
+    try:
+
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if not auction_db:
+            raise HTTPException(detail="auction session not found", status_code=404)
+        
+        product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == auction_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="no product found in this session, maybe it didn't be added ?")
+        
+        return product
+
+    except HTTPException as http_e:
+        raise http_e
+    
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

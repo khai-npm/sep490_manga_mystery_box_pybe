@@ -20,7 +20,8 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_get_joined_history_auction,
                                        action_get_waiting_auction_list_user_side,
                                        action_get_started_auction_list_user_side,
-                                       action_get_mod_auction_list_user_side)
+                                       action_get_mod_auction_list_user_side,
+                                       action_get_auction_product)
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -53,6 +54,10 @@ async def get_user_product_db(current_user :str = Depends(get_current_user)):
 @Auction.post("/product", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def create_auction_product(data : AddAuctionProductSchema, current_user :str = Depends(get_current_user)):
     return {"data" : [await action_create_auction_product(data, current_user)]}
+
+@Auction.get("/product", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_auction_product(auction_id : str):
+    return {"data" : [await action_get_auction_product(auction_id)]}
 
 @Auction.post("/new", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def create_new_auction_session(request_data : AddAuctionSessionSchema ,current_user : str = Depends(get_current_user)): 

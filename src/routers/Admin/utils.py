@@ -300,7 +300,7 @@ async def action_approve_auction_session(auction_id: str, status : int, current_
         if await Permission_checker(current_user, "moderator_auction_management") is False:
             raise HTTPException(status_code=403, detail="access denied")
         
-        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_db))
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
         if not auction_db:
             raise HTTPException(detail="auction session not found !", status_code=404)
         

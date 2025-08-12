@@ -65,9 +65,18 @@ def ws_guide_html():
         html_template = f.read()
     return HTMLResponse(content=html_template, status_code=200)
 
+# def admin_demo_page_html():
+#     with open("./src/admin-page/index.html", "r", encoding="utf-8") as f:
+#         html_template = f.read()
+#     return HTMLResponse(content=html_template, status_code=200)
+
 @app.get("/ws-docs", response_class=HTMLResponse)
 async def ws_docs_page(request : Request):
     return ws_guide_html()
+
+# @app.get("/admin-page", response_class=HTMLResponse)
+# async def demo_admin_page(request : Request):
+#     return admin_demo_page_html()
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
