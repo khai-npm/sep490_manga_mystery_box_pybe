@@ -10,12 +10,19 @@ from src.models.AuctionResult import AuctionResult
 from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
+from src.schemas.HostAuctionSchema import HostAuctionSchema
 from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
 from bson import Decimal128
 from decimal import Decimal
 from src.libs.permission_checker import Permission_checker
 from src.schemas.AuctionResponseSchema import AuctionResponseSchema
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+env_fee_perentage = os.getenv("FEE_PERCENT")
+env_auction_duration = os.getenv("AUCTION_DURATION_MINUTES")
 
 async def action_get_all_auction_list_user_side(filter, current_user : str):
     try:
@@ -78,8 +85,33 @@ async def action_get_all_auction_user_hosed_side(current_user : str):
         user_db = await User.find_one(User.username==current_user)
         if not user_db:
             raise HTTPException(detail="user not found!", status_code=404)
-        
-        return await AuctionSession.find(AuctionSession.seller_id == str(user_db.id)).to_list()
+        auction_list = await AuctionSession.find(AuctionSession.seller_id == str(user_db.id)).to_list()
+        result = []
+        for each in auction_list:
+            fee_charge = env_fee_perentage
+            incoming_value = 0
+            host_value = 0
+            product_auction = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
+            if product_auction:
+                host_value = product_auction.current_price
+                incoming_value = (product_auction.current_price - (product_auction.current_price *(int(env_fee_perentage)/100)))
+                print(host_value)
+                print(incoming_value)
+            auction_response = HostAuctionSchema(
+                    title = each.title,
+                    descripition = each.descripition,
+                    start_time = each.start_time,
+                    end_time = each.end_time,
+                    seller_id = each.seller_id,
+                    status = each.status,
+                    host_value = float(host_value),
+                    fee_charge=str(fee_charge) + "%",
+                    incoming_value=float(incoming_value)
+                )
+            result.append(auction_response)
+
+
+        return result
     except HTTPException as http_exc:
         raise http_exc
     
@@ -135,6 +167,7 @@ async def action_create_auction_product(request_data : AddAuctionProductSchema ,
 
 async def action_create_new_auction_session(request_data : AddAuctionSessionSchema, current_user : str):
     try:
+        duration_minutes = int(env_auction_duration)
         user = await User.find_one(User.username == current_user)
         if not user:
             raise HTTPException(detail="user not found", status_code=404)
@@ -152,7 +185,7 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
             raise HTTPException(detail="title not valid", status_code=400)         
 
         new_auction = AuctionSession(descripition=request_data.descripition,
-                                     end_time=request_data.start_time + timedelta(hours=1),
+                                     end_time=request_data.start_time + timedelta(minutes=duration_minutes),
                                      start_time=request_data.start_time,
                                      seller_id=str(user.id),
                                      title=request_data.title,
