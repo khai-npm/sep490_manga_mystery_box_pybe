@@ -223,6 +223,8 @@ async def action_join_a_auction(auction_id : str, current_user_name : str):
             raise HTTPException(status_code=404, detail="user not found !")
         
         auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if auction_db.start_time > datetime.now() or auction_db.end_time < datetime.now():
+            raise HTTPException(status_code=403, detail="auction ended or not started yet ")
 
         if not auction_db:
             raise HTTPException(status_code=404, detail="auction not valid !")
@@ -261,6 +263,13 @@ async def action_leave_a_auction(auction_id : str, current_user_name : str):
         user_db = await User.find_one(User.username == current_user_name)
         if not user_db :
             raise HTTPException(status_code=404, detail="user not found !")
+        
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if not auction_db:
+            raise HTTPException(status_code=404, detail="not valid auction")
+        
+        if auction_db.end_time > datetime.now():
+            raise HTTPException(detail="cannot leave an ended auction", status_code="403")
         
         auction_participant = await AuctionParticipant.find_one(AuctionParticipant.user_id== str(user_db.id),
                                              AuctionParticipant.auction_id== auction_id)
