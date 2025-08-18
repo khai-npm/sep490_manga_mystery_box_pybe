@@ -288,6 +288,11 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
         if not auction_db:
             raise HTTPException(status_code=404, detail="auction not found")
         
+        is_joined = await AuctionParticipant.find_one(AuctionParticipant.auction_id==auction_id,
+                                                      AuctionParticipant.user_id == str(user_db.id))
+        if not is_joined:
+            raise HTTPException(status_code=403, detail="not in auction session !")
+        
         user_wallet = await DigitalWallet.find_one(DigitalWallet.id == ObjectId(user_db.wallet_id))
         if not user_wallet:
             raise HTTPException(status_code=403, detail="wallet not registered !")
