@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from src.schemas.AddAuctionProductSchema import AddAuctionProductSchema
 from src.schemas.AddAuctionSessionSchema import AddAuctionSessionSchema
 from src.schemas.HostAuctionSchema import HostAuctionSchema
+from src.schemas.AuctionWinSchema import AuctionWinSchema
 from bson import ObjectId
 from src.models.DigitalWallet import DigitalWallet
 from bson import Decimal128
@@ -515,3 +516,31 @@ async def action_get_bid_auction(auction_id : str):
     
     except HTTPException as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_get_own_win_auction(current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not current_user:
+            raise HTTPException(status_code=404, detail="not found user")
+        
+        all_auction = await AuctionResult.find(AuctionResult.bidder_id == str(user_db.id)).to_list()
+        result = []
+        for each in all_auction:
+            auction_info = await AuctionSession.find_one(AuctionSession.id == ObjectId(each.auction_id))
+            auction_product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == each.auction_id)
+            auction_result_info = await AuctionResult.find_one(AuctionResult.auction_id == each.auction_id)
+
+            new_result = AuctionWinSchema(auction_info=auction_info,
+                                          auction_product=auction_product,
+                                          auction_result=auction_result_info
+                                          )
+            
+            result.append(new_result)
+        return result
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
