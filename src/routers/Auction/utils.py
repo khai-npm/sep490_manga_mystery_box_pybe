@@ -99,6 +99,7 @@ async def action_get_all_auction_user_hosed_side(current_user : str):
                 print(host_value)
                 print(incoming_value)
             auction_response = HostAuctionSchema(
+                    id = str(each.id),
                     title = each.title,
                     descripition = each.descripition,
                     start_time = each.start_time,

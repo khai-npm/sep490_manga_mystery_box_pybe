@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 class HostAuctionSchema(BaseModel):
+    id : str
     title : str
     descripition : str
     start_time : datetime
