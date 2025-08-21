@@ -544,4 +544,22 @@ async def action_get_own_win_auction(current_user : str):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+async def action_get_auction_result(current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        if not await Permission_checker(current_user, "action_view_all_auction_result"):
+            raise HTTPException(status_code=403, detail="access denied !")
+        
+        all_auction_result = await AuctionResult.find().to_list()
+        return all_auction_result
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
