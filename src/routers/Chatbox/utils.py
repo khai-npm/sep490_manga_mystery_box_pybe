@@ -141,3 +141,43 @@ async def action_get_list_chat(current_user : str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+async def action_get_user_by_username_or_email(request_data : str, current_user : str):
+    try:
+        my_user = await User.find_one(User.username == current_user)
+        if not my_user:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        users = await User.find(Or(
+            User.username == request_data,
+            User.email == request_data
+        )).to_list()
+
+        filtered_users = [user for user in users if user.id != my_user.id]
+
+        return filtered_users
+
+    except HTTPException as http_e :
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+async def action_get_all_user(current_user : str):
+    try:
+        my_user = await User.find_one(User.username == current_user)
+        if not my_user:
+            raise HTTPException(status_code=404, detail="user not found")
+
+        users = await User.find(User.id != my_user.id).to_list()
+        for user in users:
+            if hasattr(user, 'password'):
+                user.password = None
+        return users
+
+    except HTTPException as http_e :
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
