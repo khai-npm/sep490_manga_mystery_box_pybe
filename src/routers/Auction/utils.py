@@ -176,7 +176,7 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
         
         if await AuctionSession.find(AuctionSession.seller_id == str(user.id),
                                      AuctionSession.status==0,
-                                     AuctionSession.end_time < datetime.now()).count() != 0:
+                                     AuctionSession.end_time > datetime.now()).count() != 0:
             raise HTTPException(detail="multiple auction create has been restricted !", status_code=400)
         
         utc_vn = datetime.now(timezone(timedelta(hours=7)))
