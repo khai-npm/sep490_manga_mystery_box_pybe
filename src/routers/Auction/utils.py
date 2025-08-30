@@ -602,8 +602,11 @@ async def action_cancel_auction(auction_id : str, current_user : str):
                                                        User_Product.CollectorId==str(user_db.id))
             if user_product:
                 await user_product.set({User_Product.Quantity : user_product.Quantity + product_auction.quantity})
-        
-        return auction_db
+
+                await product_auction.delete()
+
+        await auction_db.delete()
+        return True
 
     except HTTPException as http_e:
         raise http_e
