@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Email Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Preheader text: hidden but shown as preview in inbox -->
+  <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">
+    Your verification code: {code}
+  </span>
+</head>
+<body style="margin:0;padding:0;background:#f6f9fc;">
+  <!-- Wrapper -->
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f9fc;">
+    <tr>
+      <td align="center" style="padding:24px;">
+        <!-- Card -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e9eef5;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding:20px 24px;background:#111827;">
+              <div style="font:700 18px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#ffffff;">
+                Verify your email address
+              </div>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:24px;">
+              <div style="font:400 15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#111827;">
+                <p style="margin:0 0 12px 0;">Hello,</p>
+                <p style="margin:0 0 16px 0;">
+                  This is your 6-digit verification code. Please enter it within
+                  <strong>10 minutes</strong> to complete your email verification.
+                </p>
+
+                <!-- Code box -->
+                <div style="margin:18px 0 8px 0;text-align:center;">
+                  <div style="
+                      display:inline-block;
+                      padding:14px 18px;
+                      border:1px dashed #cbd5e1;
+                      border-radius:10px;
+                      background:#f8fafc;
+                      font:700 28px/1.1 ui-monospace,SFMono-Regular,Menlo,Monaco,'Liberation Mono','Courier New',monospace;
+                      letter-spacing:4px;
+                      color:#0f172a;
+                    ">
+                    {code}
+                  </div>
+                </div>
+
+                <p style="margin:8px 0 0 0;font-size:13px;color:#475569;">
+                  If you did not request this, please ignore this email.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding:16px 24px;background:#f1f5f9;">
+              <div style="font:500 12px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#64748b;">
+                PRN212 - Final Group Project
+              </div>
+            </td>
+          </tr>
+        </table>
+        <!-- /Card -->
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

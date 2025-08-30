@@ -181,3 +181,18 @@ async def action_get_all_user(current_user : str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+async def action_get_userid_by_token(current_user : str):
+    try:
+        my_user = await User.find_one(User.username == current_user)
+        if not my_user:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        return str(my_user.id)
+
+    except HTTPException as http_e :
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

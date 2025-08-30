@@ -217,13 +217,10 @@ async def action_send_verfify_email(data: str):
         msg.set_content(body)
         msg.add_alternative(html_content, subtype='html')
 
-#========================[AI generated code]====================
-
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(sender_email, os.getenv("SENDER_PASSWORD"))
             smtp.send_message(msg)
 
-#================================================================
 
         return data + "verification code sent !"
 

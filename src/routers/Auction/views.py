@@ -24,7 +24,9 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_get_auction_product,
                                        action_get_bid_auction,
                                        action_get_own_win_auction,
-                                       action_get_auction_result)
+                                       action_get_auction_result,
+                                       action_reject_all_expired_auction,
+                                       action_cancel_auction)
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -109,3 +111,11 @@ async def get_own_win_auction(current_user : str = Depends(get_current_user)):
 @Auction.get("/auction-result", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_auction_result(current_user : str = Depends(get_current_user)):
     return {"data" : await action_get_auction_result(current_user)}
+
+@Auction.post("/expired-auction", response_model=BodyResponseSchema)
+async def reject_expired_auction():
+    return {"data" : [await action_reject_all_expired_auction()]}
+
+@Auction.delete("/auction-cancel", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def cancel_auction(auction_id : str, current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_cancel_auction(auction_id, current_user)]}

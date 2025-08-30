@@ -12,7 +12,8 @@ from src.routers.Chatbox.utils import (action_create_conversation,
                                        action_get_username_by_id,
                                        action_get_list_chat,
                                        action_get_user_by_username_or_email,
-                                       action_get_all_user)
+                                       action_get_all_user,
+                                       action_get_userid_by_token)
 
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
@@ -56,3 +57,7 @@ async def get_user_by_username_or_email(request_data : str, current_user : str =
 @chatbox_router.get("/conservation/user-list", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_all_user(current_user : str = Depends(get_current_user)):
     return {"data" : await action_get_all_user(current_user)}
+
+@chatbox_router.get("/conservation/userid", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_userid_by_token(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_get_userid_by_token(current_user)]}

@@ -563,3 +563,50 @@ async def action_get_auction_result(current_user : str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
+async def action_reject_all_expired_auction():
+    try:
+        
+        all_expired_auction = await AuctionSession.find(AuctionSession.end_time < datetime.now(),
+                                                       AuctionSession.status == 0).to_list()
+        for each in all_expired_auction:
+            await each.set({AuctionSession.status : -1})
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+
+
+async def action_cancel_auction(auction_id : str, current_user : str):
+    try:
+        user_db = await User.find_one(User.username == current_user)
+        if not user_db:
+            raise HTTPException(status_code=404, detail="user not found")
+        
+        auction_db = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction_id))
+        if not auction_db:
+            raise HTTPException(status_code=404, detail="auction not found")
+        
+        if str(user_db.id) != auction_db.seller_id:
+            raise HTTPException(status_code=403, detail="requested user is not owner of auction !.")
+        
+        if datetime.now() > auction_db.start_time and auction_db.status == 1:
+            raise HTTPException(status_code=403, detail="cannot cancel an started auction !")
+        
+        #await auction_db.set({AuctionSession.status : -1})
+        product_auction = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(auction_db.id))
+        if product_auction:
+            user_product = await User_Product.find_one(User_Product.ProductId == product_auction.user_product_id,
+                                                       User_Product.CollectorId==str(user_db.id))
+            if user_product:
+                await user_product.set({User_Product.Quantity : user_product.Quantity + product_auction.quantity})
+        
+        return auction_db
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
