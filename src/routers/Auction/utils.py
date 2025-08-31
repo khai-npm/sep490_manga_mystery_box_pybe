@@ -96,8 +96,6 @@ async def action_get_all_auction_user_hosed_side(current_user : str):
             if product_auction:
                 host_value = product_auction.current_price
                 incoming_value = (product_auction.current_price - (product_auction.current_price *(int(env_fee_perentage)/100)))
-                print(host_value)
-                print(incoming_value)
             auction_response = HostAuctionSchema(
                     id = str(each.id),
                     title = each.title,
@@ -324,7 +322,6 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
         # all_bids_in_session = await Bids.find(Bids.auction_id == (auction_db.id)).sort(-Bids.bid_amount).to_list()
         # highest_bids_in_session = all_bids_in_session[0]
         highest_bids_in_session = await Bids.find(Bids.auction_id == str(auction_db.id)).sort(-Bids.bid_amount,).first_or_none()
-        print(highest_bids_in_session)
 
         if not highest_bids_in_session:
             # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})

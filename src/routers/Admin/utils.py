@@ -321,3 +321,51 @@ async def action_approve_auction_session(auction_id: str, status : int, current_
         raise http_e
     except Exception as e:
         raise HTTPException(detail=str(e), status_code=400)
+
+
+async def action_get_user_dashboard(current_user : str):
+    try:
+        if await Permission_checker(current_user, "admin_view_analyst") is False:
+            raise HTTPException(status_code=403, detail="access denied")
+        
+        total_user = await User.count()
+        total_moderator = await User.find(User.role_id == "mod").count()
+        total_active_user = await User.find(User.is_active == True).count()
+        total_inactive_user = await User.find(User.is_active == False).count()
+
+        return {
+            "total_user" : total_user,
+            "total_moderator" : total_moderator,
+            "total_active_user" : total_active_user,
+            "total_inactive_user" : total_inactive_user
+        }
+
+
+    except HTTPException as http_e:
+        raise http_e
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_auction_dashboard(current_user : str):
+    try:
+        if await Permission_checker(current_user, "admin_view_analyst") is False:
+            raise HTTPException(status_code=403, detail="access denied")
+        
+        total_auction = await AuctionSession.count()
+        total_approved_auction = await AuctionSession.find(AuctionSession.status == 1).count()
+        total_denied_auction = await AuctionSession.find(AuctionSession.status == -1).count()
+        total_pending_auction = await AuctionSession.find(AuctionSession.status == 0).count()
+
+        return {
+            "total_auction" : total_auction,
+            "total_approved_auction" : total_approved_auction,
+            "total_denied_auction" : total_denied_auction,
+            "total_pending_auction" : total_pending_auction
+        }
+
+
+    except HTTPException as http_e:
+        raise http_e
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    

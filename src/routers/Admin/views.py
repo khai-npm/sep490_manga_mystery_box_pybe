@@ -20,7 +20,9 @@ from src.routers.Admin.utils import (action_change_permission_code_description,
                                      action_toggle_activation_user,
                                      action_get_total_trans_revenue,
                                      action_get_total_revenue_fee,
-                                     action_approve_auction_session
+                                     action_approve_auction_session,
+                                     action_get_user_dashboard,
+                                     action_get_auction_dashboard
                                      )
 # from src.routers.account.utils import (action_get_payment_info_by_user, action_user_register,
 #                                        action_login)
@@ -124,3 +126,12 @@ async def get_total_revenue_fee(filter : Optional[str] = Query("all"), current_u
 @admin_router.patch("/auction/approval", dependencies=[Depends(jwt_validator)] ,response_model=BodyResponseSchema)
 async def approve_auction_session(auction_id : str, status : int,  current_user : str = Depends(get_current_user)):
     return {"data" : [await action_approve_auction_session(auction_id, status , current_user)]}
+
+@admin_router.get("/dashboard/user", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_user_dashboard(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_get_user_dashboard(current_user)]}
+
+@admin_router.get("/dashboard/auction", dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_auction_dashboard(current_user : str = Depends(get_current_user)):
+    return {"data" : [await action_get_auction_dashboard(current_user)]}
+
