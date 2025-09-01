@@ -20,6 +20,8 @@ from src.libs.permission_checker import Permission_checker
 from src.schemas.AuctionResponseSchema import AuctionResponseSchema
 from dotenv import load_dotenv
 import os
+import asyncio
+import requests
 
 load_dotenv()
 env_fee_perentage = os.getenv("FEE_PERCENT")
@@ -610,3 +612,65 @@ async def action_cancel_auction(auction_id : str, current_user : str):
     
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_automated_confirmation():
+    try:
+        all_ended_auction = await AuctionSession.find(AuctionSession.end_time < datetime.now(),
+                                                      AuctionSession.status == 1).to_list()
+        for each in all_ended_auction:
+            if await AuctionResult.find_one(AuctionResult.auction_id==str(each.id)):
+                continue
+            highest_bids_in_session = await Bids.find(Bids.auction_id == str(each.id)).sort(-Bids.bid_amount,).first_or_none()
+            if highest_bids_in_session:
+                auction_product = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
+                if not auction_product:
+                    await each.set({AuctionSession.status : -1})
+                    continue
+                
+                winner = await User.find_one(User.id == ObjectId(highest_bids_in_session.bidder_id))
+                hoster_id = each.seller_id
+                result = AuctionResult(auction_id=str(each.id),
+                                       product_id=auction_product.user_product_id,
+                                       quantity=auction_product.quantity,
+                                       bidder_amount=Decimal(highest_bids_in_session.bid_amount),
+                                       bidder_id=str(winner.id),
+                                       hoster_id=hoster_id,
+                                       host_claim_amount=Decimal(highest_bids_in_session.bid_amount-((highest_bids_in_session.bid_amount*5)/100)),
+                                       is_solved=False
+                                       )
+                await result.insert()
+            else:
+                await each.set({AuctionSession.status : -1})
+ 
+        
+        return await action_automated_solve_auction_result()
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+async def action_automated_solve_auction_result():
+    try:
+        result = []
+        all_unsolved_auction_result = await AuctionResult.find(AuctionResult.is_solved==False).to_list()
+        for each in all_unsolved_auction_result:
+            data = await asyncio.to_thread(action_call_solve_auction_result_api, each.auction_id)
+            result.append(data)
+        return result
+
+    except HTTPException as http_e:
+        raise http_e
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+def action_call_solve_auction_result_api(auction_id : str):
+    url = f"https://mmb-be-dotnet.onrender.com/cs/api/AuctionSettlement/finalize-auction/{auction_id}"
+    headers = {
+        "accept": "text/plain"
+    }
+
+    response = requests.post(url, headers=headers, data="")
+    return response.json()
