@@ -436,6 +436,8 @@ async def action_get_joined_history_auction(current_user : str):
         particited_auction = await AuctionParticipant.find(AuctionParticipant.user_id==str(user_db.id)).to_list()
         for each in particited_auction:
             auction = await AuctionSession.find_one(AuctionSession.id == ObjectId(each.auction_id))
+            if not auction:
+                continue
             if auction.end_time < datetime.now():
                 auction_list.append(auction)
 
