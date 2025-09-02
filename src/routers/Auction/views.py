@@ -121,7 +121,6 @@ async def reject_expired_auction():
 async def cancel_auction(auction_id : str, current_user : str = Depends(get_current_user)):
     return {"data" : [await action_cancel_auction(auction_id, current_user)]}
 
-
 @Auction.post("/automated-confirmation", response_model=BodyResponseSchema)
 async def automated_confirmation():
     return {"data" : [await action_automated_confirmation()]}

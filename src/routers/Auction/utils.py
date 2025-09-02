@@ -180,8 +180,8 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
             raise HTTPException(detail="multiple auction create has been restricted !", status_code=400)
         
         utc_vn = datetime.now(timezone(timedelta(hours=7)))
-        if request_data.start_time < utc_vn +timedelta(hours=1):
-            raise HTTPException(detail="start time must be above 1 hours from now", status_code=403)
+        if request_data.start_time < utc_vn +timedelta(minutes=1):
+            raise HTTPException(detail="start time must be above 1 minutes from now", status_code=403)
 
         if request_data.title == "":
             raise HTTPException(detail="title not valid", status_code=400)         
