@@ -180,6 +180,8 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
             raise HTTPException(detail="multiple auction create has been restricted !", status_code=400)
         
         utc_vn = datetime.now(timezone(timedelta(hours=7)))
+        print("Current time in UTC+7:", utc_vn)
+        print("current time:", datetime.now())
         if request_data.start_time < utc_vn +timedelta(minutes=1):
             raise HTTPException(detail="start time must be above 1 minutes from now", status_code=403)
 
@@ -187,8 +189,8 @@ async def action_create_new_auction_session(request_data : AddAuctionSessionSche
             raise HTTPException(detail="title not valid", status_code=400)         
 
         new_auction = AuctionSession(descripition=request_data.descripition,
-                                     end_time=request_data.start_time + timedelta(minutes=duration_minutes),
-                                     start_time=request_data.start_time,
+                                     end_time=request_data.start_time + timedelta(hours=7) + timedelta(minutes=duration_minutes),
+                                     start_time=request_data.start_time + timedelta(hours=7),
                                      seller_id=str(user.id),
                                      title=request_data.title,
                                      status=0)

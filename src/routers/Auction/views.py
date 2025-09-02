@@ -1,3 +1,4 @@
+import datetime
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import APIKeyHeader, APIKeyQuery, OAuth2PasswordRequestForm
@@ -124,3 +125,7 @@ async def cancel_auction(auction_id : str, current_user : str = Depends(get_curr
 @Auction.post("/automated-confirmation", response_model=BodyResponseSchema)
 async def automated_confirmation():
     return {"data" : [await action_automated_confirmation()]}
+
+@Auction.get("/test-time", response_model=BodyResponseSchema)
+async def test_time():
+    return {"data" : [datetime.datetime.now()]}
