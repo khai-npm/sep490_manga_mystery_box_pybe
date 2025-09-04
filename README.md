@@ -4,7 +4,7 @@ Real-time data service communication portal
 
 - **SWAGGER UI**  
 [![Render Version](https://img.shields.io/badge/Render-Live-blue)](https://sep490-manga-mystery-box-pybe.onrender.com/)  
-[![API Dev](https://img.shields.io/badge/API-mmb.io.vn-green)](https://api.mmb.io.vn/) *(only avaible at developent stage)*
+[![API Dev](https://img.shields.io/badge/API-mmb.io.vn-green)](https://api.mmb.io.vn/) *(only avaible at development stage)*
 
 ---
 
