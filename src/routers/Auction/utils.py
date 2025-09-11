@@ -26,6 +26,8 @@ import requests
 load_dotenv()
 env_fee_perentage = os.getenv("FEE_PERCENT")
 env_auction_duration = os.getenv("AUCTION_DURATION_MINUTES")
+env_auction_min_bid_percentage = os.getenv("AUCTION_MIN_BID_PERCENTAGE")
+env_auction_max_bid_percentage = os.getenv("AUCTION_MAX_BID_PERCENTAGE")
 
 async def action_get_all_auction_list_user_side(filter, current_user : str):
     try:
@@ -335,10 +337,13 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
                               bidder_id=str(user_db.id),
                               bid_time=datetime.now()).insert()
 
-        if ammount <= highest_bids_in_session.bid_amount + ((product_auction.starting_price * 5)/100):
+        if ammount <= highest_bids_in_session.bid_amount + ((highest_bids_in_session.bid_amount * int(env_auction_min_bid_percentage))/100):
             raise HTTPException(status_code=403, detail="bid ammount invalid")
         
         else:
+            if ammount <= product_auction.current_price + ((product_auction.starting_price * int(env_auction_min_bid_percentage))/100):
+                raise HTTPException(status_code=403, detail="bid ammount invalid")
+
             # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})
             await product_auction.set({AuctionProduct.current_price : ammount})
             return await Bids(auction_id=str(auction_db.id),
