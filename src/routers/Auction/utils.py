@@ -418,7 +418,7 @@ async def action_is_joined_auction(current_user : str):
         for auction in joined_auction:
             session = await AuctionSession.find_one(AuctionSession.id == ObjectId(auction.auction_id))
             if not session:
-                return False
+                continue
             if session.start_time < datetime.now() < session.end_time:
                 return True
             
