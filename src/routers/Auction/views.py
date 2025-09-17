@@ -28,7 +28,9 @@ from src.routers.Auction.utils import (action_get_all_auction_list_user_side,
                                        action_get_auction_result,
                                        action_reject_all_expired_auction,
                                        action_cancel_auction,
-                                       action_automated_confirmation)
+                                       action_automated_confirmation,
+                                       action_get_all_auction_list_user_side_extend
+                                       )
 from src.routers.websocket.Auction.connection_manager import broadcast
 from src.models.User import User
 from dotenv import load_dotenv
@@ -41,6 +43,10 @@ Auction = APIRouter(prefix="/api/auction", tags=["Auction"])
 @Auction.get("/all",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_all_auction_list_user_side(filter : Optional[str] = Query("default"), current_user :str = Depends(get_current_user)):
     return {"data" : await action_get_all_auction_list_user_side(filter, current_user)}
+
+@Auction.get("/all/extend",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
+async def get_all_auction_list_user_side_old(filter : Optional[str] = Query("default"), current_user :str = Depends(get_current_user)):
+    return {"data" : await action_get_all_auction_list_user_side_extend(filter, current_user)}
 
 @Auction.get("/mod",dependencies=[Depends(jwt_validator)], response_model=BodyResponseSchema)
 async def get_mod_auction_list_user_side(current_user :str = Depends(get_current_user)):

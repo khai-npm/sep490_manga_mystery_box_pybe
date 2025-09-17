@@ -18,6 +18,7 @@ from bson import Decimal128
 from decimal import Decimal
 from src.libs.permission_checker import Permission_checker
 from src.schemas.AuctionResponseSchema import AuctionResponseSchema
+from src.schemas.AuctionDetailExtendSchema import AuctionDetailExtendSchema
 from dotenv import load_dotenv
 import os
 import asyncio
@@ -47,6 +48,152 @@ async def action_get_all_auction_list_user_side(filter, current_user : str):
         
         return await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
                                          AuctionSession.status==1).to_list()
+    except HTTPException as http_exc:
+        raise http_exc
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+
+async def action_get_all_auction_list_user_side_extend(filter, current_user : str):
+    try:
+
+        if filter != "default" and filter != "started" and filter != "waiting":
+            raise HTTPException(status_code=400, detail="filter param not valid ! [default / started / waiting]")
+        
+        if filter == "waiting":
+            return await action_get_waiting_auction_list_user_side_extend(current_user)
+        
+        if filter == "started":
+            return await action_get_started_auction_list_user_side_extend(current_user)
+
+        user_db = await User.find_one(User.username==current_user)
+        auction_list = await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status==1).to_list()
+        result = []
+        for each in auction_list:
+            host_user = await User.find_one(User.id == ObjectId(each.seller_id))
+            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
+            if product_db:
+                product_id = product_db.user_product_id
+                product_quantity = product_db.quantity
+                current_amount = product_db.current_price
+                fee_charge = env_fee_perentage
+                host_obtain_amount = current_amount - (current_amount * (int(env_fee_perentage)/100))
+            else:
+                product_id = ""
+                product_quantity = 0
+                current_amount = 0
+                fee_charge = 0
+                host_obtain_amount = 0
+            data = AuctionDetailExtendSchema(auction_id=str(each.id),
+                                         status=each.status,
+                                         host_username=host_user.username,
+                                         product_id=product_id,
+                                         quantity=product_quantity,
+                                         start_time=each.start_time,
+                                         end_time=each.end_time,
+                                         auction_current_amount=float(current_amount),
+                                         transaction_fee_percent=float(fee_charge),
+                                         host_obtain_amount=float(host_obtain_amount)
+                                         )
+            
+            result.append(data)
+
+        return result
+        
+    except HTTPException as http_exc:
+        raise http_exc
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_waiting_auction_list_user_side_extend(current_user : str):
+    try:
+        user_db = await User.find_one(User.username==current_user)
+        if not user_db:
+            raise HTTPException(detail="user not found!", status_code=404)
+        
+        auction_list = await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status == 1,
+                                         AuctionSession.start_time > datetime.now()).to_list()
+        result = []
+        for each in auction_list:
+            host_user = await User.find_one(User.id == ObjectId(each.seller_id))
+            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
+            if product_db:
+                product_id = product_db.user_product_id
+                product_quantity = product_db.quantity
+                current_amount = product_db.current_price
+                fee_charge = env_fee_perentage
+                host_obtain_amount = current_amount - (current_amount * (int(env_fee_perentage)/100))
+            else:
+                product_id = ""
+                product_quantity = 0
+                current_amount = 0
+                fee_charge = 0
+                host_obtain_amount = 0
+            data = AuctionDetailExtendSchema(auction_id=str(each.id),
+                                         status=each.status,
+                                         host_username=host_user.username,
+                                         product_id=product_id,
+                                         quantity=product_quantity,
+                                         start_time=each.start_time,
+                                         end_time=each.end_time,
+                                         auction_current_amount=float(current_amount),
+                                         transaction_fee_percent=float(fee_charge),
+                                         host_obtain_amount=float(host_obtain_amount)
+                                         )
+            
+            result.append(data)
+
+        return result
+    except HTTPException as http_exc:
+        raise http_exc
+    
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=400)
+    
+async def action_get_started_auction_list_user_side_extend(current_user : str):
+    try:
+        user_db = await User.find_one(User.username==current_user)
+        if not user_db:
+            raise HTTPException(detail="user not found!", status_code=404)
+        
+        auction_list = await AuctionSession.find(AuctionSession.seller_id != str(user_db.id),
+                                         AuctionSession.status == 1,
+                                         AuctionSession.start_time <= datetime.now(),
+                                         AuctionSession.end_time > datetime.now()).to_list()
+        result = []
+        for each in auction_list:
+            host_user = await User.find_one(User.id == ObjectId(each.seller_id))
+            product_db = await AuctionProduct.find_one(AuctionProduct.auction_session_id == str(each.id))
+            if product_db:
+                product_id = product_db.user_product_id
+                product_quantity = product_db.quantity
+                current_amount = product_db.current_price
+                fee_charge = env_fee_perentage
+                host_obtain_amount = current_amount - (current_amount * (int(env_fee_perentage)/100))
+            else:
+                product_id = ""
+                product_quantity = 0
+                current_amount = 0
+                fee_charge = 0
+                host_obtain_amount = 0
+            data = AuctionDetailExtendSchema(auction_id=str(each.id),
+                                         status=each.status,
+                                         host_username=host_user.username,
+                                         product_id=product_id,
+                                         quantity=product_quantity,
+                                         start_time=each.start_time,
+                                         end_time=each.end_time,
+                                         auction_current_amount=float(current_amount),
+                                         transaction_fee_percent=float(fee_charge),
+                                         host_obtain_amount=float(host_obtain_amount)
+                                         )
+            
+            result.append(data)
+
+        return result
     except HTTPException as http_exc:
         raise http_exc
     
