@@ -1,0 +1,26 @@
+name: CI/CD Docker Deploy
+
+on:
+  push:
+    branches:
+      - main   # hoặc branch bạn muốn deploy
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, py-cicd]   # dùng runner bạn đã đăng ký
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t be-py:latest .
+
+      - name: Restart container
+        run: |
+          docker stop be-py || true
+          docker rm be-py || true
+          docker run -d --name be-py -p 8000:8000 be-py:latest
