@@ -23,4 +23,4 @@ jobs:
         run: |
           docker stop be-py || true
           docker rm be-py || true
-          docker run -d --name be-py -p 8000:8000 be-py:latest
+          docker run -d --name be-py --env-file /home/khai-npm.env -p 8000:8000 be-py:latest
