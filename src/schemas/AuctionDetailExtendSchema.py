@@ -5,6 +5,9 @@ from pydantic import BaseModel
 
 class AuctionDetailExtendSchema(BaseModel):
     host_username : str
+    seller_id : str
+    title : str
+    description : str
     auction_id : str
     start_time : datetime
     end_time : datetime
