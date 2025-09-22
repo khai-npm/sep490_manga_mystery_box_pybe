@@ -486,6 +486,9 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
         highest_bids_in_session = await Bids.find(Bids.auction_id == str(auction_db.id)).sort(-Bids.bid_amount,).first_or_none()
 
         if not highest_bids_in_session:
+            if auction_db.end_time < datetime.now() + timedelta(minutes=1):
+                auction_db.end_time = auction_db.end_time + timedelta(minutes=2)
+                await auction_db.save()
             # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})
             await product_auction.set({AuctionProduct.current_price : ammount})
             return await Bids(auction_id=str(auction_db.id),
@@ -499,6 +502,9 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
         else:
             if ammount <= product_auction.current_price + ((product_auction.starting_price * int(env_auction_min_bid_percentage))/100):
                 raise HTTPException(status_code=403, detail="bid ammount invalid")
+            
+            if auction_db.end_time < datetime.now() + timedelta(minutes=1):
+                auction_db.end_time = auction_db.end_time + timedelta(minutes=2)
 
             # await user_wallet.set({DigitalWallet.ammount : DigitalWallet.ammount - ammount})
             await product_auction.set({AuctionProduct.current_price : ammount})
