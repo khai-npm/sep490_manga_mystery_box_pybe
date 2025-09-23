@@ -495,6 +495,9 @@ async def action_add_bid_auction(auction_id : str, ammount : float, current_user
                               bid_amount=ammount,
                               bidder_id=str(user_db.id),
                               bid_time=datetime.now()).insert()
+        
+        if highest_bids_in_session.bidder_id == str(user_db.id):
+            raise HTTPException(status_code=403, detail="cannot bid on own highest bid !")
 
         if ammount <= highest_bids_in_session.bid_amount + ((highest_bids_in_session.bid_amount * int(env_auction_min_bid_percentage))/100):
             raise HTTPException(status_code=403, detail="bid ammount invalid")
