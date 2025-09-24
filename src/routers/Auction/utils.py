@@ -641,13 +641,19 @@ async def action_get_mod_auction_list_user_side(current_user : str):
             else:
                 product_id = ""
                 product_quantity = 0
-            data = AuctionResponseSchema(auction_id=str(each.id),
-                                         status=each.status,
-                                         host_username=host_user.username,
-                                         product_id=product_id,
-                                         quantity=product_quantity,
-                                         start_time=each.start_time,
-                                         end_time=each.end_time
+            data = AuctionDetailExtendSchema(auction_id=str(each.id),
+                                        status=each.status,
+                                        host_username=host_user.username,
+                                        product_id=product_id,
+                                        quantity=product_quantity,
+                                        start_time=each.start_time,
+                                        end_time=each.end_time,
+                                        auction_current_amount=product_db.current_price if product_db else 0,
+                                        transaction_fee_percent=float(env_fee_perentage),
+                                        host_obtain_amount=float(product_db.current_price - (product_db.current_price * (int(env_fee_perentage)/100))) if product_db else 0,
+                                        title=each.title,
+                                        description=each.descripition,
+                                        seller_id=each.seller_id
                                          )
             
             result.append(data)
